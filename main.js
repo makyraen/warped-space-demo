@@ -27,13 +27,27 @@ const CONFIG = {
     // 질량이 돌아다닐 수 있는 반경. embedR0 밖은 Flamm 깊이가 0으로 잘리고, 프래그먼트 셰이더가
     // 격자를 300~500에서 지운다. 그 구역까지 질량이 나가면 "허공에 뜬 공"으로 보이므로 안쪽에 가둔다.
     massLimit: 340.0,
-    dropHeight: 220.0   // 질량을 이 높이에서 떨어뜨린다(생성 순간을 눈으로 좇을 수 있게)
+    dropHeight: 220.0,  // 질량을 이 높이에서 떨어뜨린다(생성 순간을 눈으로 좇을 수 있게)
+    // ── 관찰자(1인칭) 모드 ──
+    // 중력에 이끌려 우물로 '떨어지는' 것이 주가 되고, 키 조작은 그 위에 얹는 미세 조정이다.
+    // 추진력이 중력만큼 세면 자유낙하가 조작에 묻혀 체험이 사라진다.
+    observerThrust: 55.0,
+    observerGravityScale: 0.4,   // 우물 근처에서 중력이 폭발해 화면이 튀는 것을 완화
+    observerFriction: 1.1,
+    observerHeightSmooth: 6.0,   // 카메라 높이 추종 속도(1/s). 가파른 벽에서 화면이 곤두박질치지 않게
+    observerLimit: 460.0,
+    // 도착 판정: 질량에 이만큼 다가가면 자유낙하가 끝나고 조작권이 넘어온다.
+    // 도착 전에는 중력이 주역이라 우물에서 빠져나올 수 없다(= 구에 묶인다).
+    observerArrivalPad: 45.0,
+    observerFreeThrust: 110.0    // 도착 후에는 중력이 꺼지므로 추진력만으로 움직인다
 };
 const STAR_COLORS = [0x9bb0ff, 0xaabfff, 0xcad7ff, 0xf8f7ff, 0xfff4ea, 0xffd2a1, 0xffcc6f];
 const state = {
     viewMode: 'GOD', model: 'RUBBER', isSpawning: false, isCharging: false, chargeStartTime: 0, masses: [], spawnsInFlight: 0,
-    fps: { yaw: 0, pitch: 0, isDragging: false },
-    user: { velocity: new THREE.Vector3(), position: new THREE.Vector3(0, 0, 300) }
+    // phase: FALLING(중력이 우물로 끌어당김) → ARRIVED(중력 off, WASD 자유 조작)
+    // freeFlight: ARRIVED에서 Space로 전환. false=격자면을 타고 이동, true=y=0 평면 자유비행
+    fps: { yaw: 0, pitch: 0, isDragging: false, phase: 'FALLING', freeFlight: false },
+    user: { velocity: new THREE.Vector3(), position: new THREE.Vector3(0, 0, 300), smoothY: 0 }
 };
 
 const canvas = document.getElementById("webgl");
@@ -57,33 +71,62 @@ orbitControls.minDistance = 50;
 orbitControls.maxPolarAngle = Math.PI / 2 - 0.05; 
 
 function setGodView() {
-    state.viewMode = 'GOD'; 
+    state.viewMode = 'GOD';
     orbitControls.enabled = true;
-    
-    gsap.to(camera.position, { x: 0, y: 400, z: 600, 
+
+    gsap.killTweensOf(camera.position);
+    gsap.to(camera.position, { x: 0, y: 400, z: 600,
         duration: 1.5, ease: "power2.inOut", onUpdate: () => { camera.lookAt(0, 0, 0); }});
-    
+
     document.getElementById("view-mode-text").innerText = "GOD MODE"; 
     document.getElementById("view-mode-text").style.color = "#ff8800"; 
     document.body.style.cursor = "default";
 }
 
 function setFpsView() {
-    state.viewMode = 'FPS'; orbitControls.enabled = false; 
+    state.viewMode = 'FPS'; orbitControls.enabled = false;
+    // God 모드 진입 트윈이 살아 있으면 매 프레임 camera.lookAt으로 회전을 덮어써서
+    // 마우스 조작과 싸운다("카메라가 이상하게 도는" 증상). 반드시 죽이고 들어간다.
+    gsap.killTweensOf(camera.position);
     state.fps.yaw = 0; state.fps.pitch = 0;
-    camera.rotation.set(0, 0, 0); 
-    state.user.position.set(0, 0, 300); 
+    state.fps.phase = 'FALLING'; state.fps.freeFlight = false;
+    camera.rotation.set(0, 0, 0, 'YXZ');
+    state.user.position.set(0, 0, 300);
     state.user.velocity.set(0, 0, 0);
-    camera.position.copy(state.user.position); 
+    state.user.smoothY = surfaceDepth(0, 300);   // 시작 높이를 미리 맞춰 첫 프레임 튐 방지
+    camera.position.copy(state.user.position);
     camera.position.y += CONFIG.userHeightOffset;
-    document.getElementById("view-mode-text").innerText = "OBSERVER (Drag to Look)"; 
-    document.getElementById("view-mode-text").style.color = "#00ccff"; 
+    updateObserverHud();
     document.body.style.cursor = "grab";
 }
 setGodView(); 
 
+// 관찰자 HUD: 지금이 자유낙하 중인지, 도착해서 조작권이 넘어왔는지 보여준다.
+function updateObserverHud() {
+    const el = document.getElementById("view-mode-text");
+    if(state.viewMode !== 'FPS') return;
+    if(state.fps.phase !== 'ARRIVED') {
+        el.innerText = "OBSERVER — 자유낙하 중 (질량에 다가가면 조작 가능)";
+        el.style.color = "#00ccff";
+    } else if(state.fps.freeFlight) {
+        el.innerText = "OBSERVER — 자유비행 (Space: 격자면 붙기)";
+        el.style.color = "#88ff88";
+    } else {
+        el.innerText = "OBSERVER — 격자면 이동 (Space: 자유비행)";
+        el.style.color = "#88ff88";
+    }
+}
+
 const keyState = { KeyW: false, KeyA: false, KeyS: false, KeyD: false };
-window.addEventListener('keydown', (e) => { if(keyState.hasOwnProperty(e.code)) keyState[e.code] = true; });
+window.addEventListener('keydown', (e) => {
+    // 도착 후에만 격자면 붙기 ↔ 자유비행 전환. 낙하 중엔 중력이 주역이라 의미가 없다.
+    if(e.code === 'Space' && state.viewMode === 'FPS' && state.fps.phase === 'ARRIVED') {
+        e.preventDefault();
+        state.fps.freeFlight = !state.fps.freeFlight;
+        updateObserverHud();
+    }
+    if(keyState.hasOwnProperty(e.code)) keyState[e.code] = true;
+});
 window.addEventListener('keyup', (e) => { if(keyState.hasOwnProperty(e.code)) keyState[e.code] = false; });
 window.addEventListener('mousedown', (e) => { if(state.viewMode === 'FPS' && !e.target.closest('button') && e.button === 0) { state.fps.isDragging = true; document.body.style.cursor = "grabbing"; } });
 window.addEventListener('mouseup', () => { state.fps.isDragging = false; if(state.viewMode === 'FPS') document.body.style.cursor = "grab"; });
@@ -99,8 +142,9 @@ window.addEventListener('mousemove', (e) => {
 
 function updateUserSimulation(deltaTime) {
     if (state.viewMode !== 'FPS') return;
-    const thrustPower = 200.0; 
-    const inputAccel = new THREE.Vector3(); 
+    const arrived = state.fps.phase === 'ARRIVED';
+    const thrustPower = arrived ? CONFIG.observerFreeThrust : CONFIG.observerThrust;
+    const inputAccel = new THREE.Vector3();
     const direction = new THREE.Vector3();
     camera.getWorldDirection(direction); direction.y = 0; direction.normalize();
     const right = new THREE.Vector3(); right.crossVectors(direction, new THREE.Vector3(0, 1, 0)).normalize();
@@ -115,23 +159,57 @@ function updateUserSimulation(deltaTime) {
     const myPos = state.user.position; 
     const physicsScale = 300.0; 
     
-    state.masses.forEach(massObj => {
-        const dx = massObj.mesh.position.x - myPos.x; 
-        const dz = massObj.mesh.position.z - myPos.z;
-        const distSq = dx*dx + dz*dz + CONFIG.epsilon*CONFIG.epsilon; 
-        const dist = Math.sqrt(distSq);
-        const forceMagnitude = (CONFIG.gravityK * massObj.mass * CONFIG.userMass) / distSq * physicsScale;
-        gravityAccel.x += (dx / dist) * forceMagnitude; gravityAccel.z += (dz / dist) * forceMagnitude;
-    });
-    
+    // 도착 판정: 질량에 충분히 다가가면 자유낙하가 끝나고 조작권이 넘어온다.
+    // 이걸 안 하면 중력이 계속 당겨 우물 바닥에서 빠져나올 수 없다(도착 = 감금).
+    if(!arrived) {
+        for(const m of state.masses) {
+            const dx = m.mesh.position.x - myPos.x, dz = m.mesh.position.z - myPos.z;
+            const reach = m.mesh.scale.x + CONFIG.observerArrivalPad;
+            if(dx*dx + dz*dz < reach * reach) {
+                state.fps.phase = 'ARRIVED';
+                state.user.velocity.set(0, 0, 0);   // 도착하면 일단 멈춘다
+                updateObserverHud();
+                break;
+            }
+        }
+    }
+
+    // 도착 후에는 중력을 끈다. 이제 WASD가 유일한 추진력이다.
+    if(state.fps.phase !== 'ARRIVED') {
+        state.masses.forEach(massObj => {
+            const dx = massObj.mesh.position.x - myPos.x;
+            const dz = massObj.mesh.position.z - myPos.z;
+            const distSq = dx*dx + dz*dz + CONFIG.epsilon*CONFIG.epsilon;
+            const dist = Math.sqrt(distSq);
+            const effMass = massObj.mass * massObj.growth;
+            const forceMagnitude = (CONFIG.gravityK * effMass * CONFIG.userMass) / distSq * physicsScale * CONFIG.observerGravityScale;
+            gravityAccel.x += (dx / dist) * forceMagnitude; gravityAccel.z += (dz / dist) * forceMagnitude;
+        });
+    }
+
     const totalAccel = inputAccel.add(gravityAccel); state.user.velocity.addScaledVector(totalAccel, deltaTime);
-    const friction = 0.5; state.user.velocity.multiplyScalar(1.0 - friction * deltaTime);
+    const friction = CONFIG.observerFriction;
+    state.user.velocity.multiplyScalar(Math.max(0, 1.0 - friction * deltaTime));
     state.user.position.addScaledVector(state.user.velocity, deltaTime);
-    const mapLimit = 480;
-    if(Math.abs(state.user.position.x) > mapLimit) { state.user.position.x = Math.sign(state.user.position.x) * mapLimit; state.user.velocity.x *= -0.5; }
-    if(Math.abs(state.user.position.z) > mapLimit) { state.user.position.z = Math.sign(state.user.position.z) * mapLimit; state.user.velocity.z *= -0.5; }
-    state.user.position.y = surfaceDepth(myPos.x, myPos.z);
-    camera.position.copy(state.user.position); camera.position.y += CONFIG.userHeightOffset;
+
+    // 질량과 같은 이유로 원형 경계(사각형이면 모서리에서 격자 밖으로 나간다)
+    const r = Math.sqrt(myPos.x*myPos.x + myPos.z*myPos.z);
+    if(r > CONFIG.observerLimit) {
+        const nx = myPos.x / r, nz = myPos.z / r;
+        myPos.x = nx * CONFIG.observerLimit; myPos.z = nz * CONFIG.observerLimit;
+        const vn = state.user.velocity.x * nx + state.user.velocity.z * nz;
+        if(vn > 0) { state.user.velocity.x -= 1.5 * vn * nx; state.user.velocity.z -= 1.5 * vn * nz; }
+    }
+
+    // 카메라 높이를 표면에 딱 붙이면 Flamm의 가파른 벽에서 화면이 곤두박질친다.
+    // 목표 높이를 향해 부드럽게 따라가게 한다(프레임률에 무관한 지수 감쇠).
+    // 자유비행(Space)이면 우물을 무시하고 y=0 평면 높이로 올라간다.
+    const targetY = state.fps.freeFlight ? 0 : surfaceDepth(myPos.x, myPos.z);
+    const k = 1.0 - Math.exp(-CONFIG.observerHeightSmooth * deltaTime);
+    state.user.smoothY += (targetY - state.user.smoothY) * k;
+    myPos.y = state.user.smoothY;
+
+    camera.position.copy(myPos); camera.position.y += CONFIG.userHeightOffset;
 }
 
 // 격자면의 하강 깊이(≤0). 정점 셰이더(index.html)의 동일 공식을 CPU에서 재현한다.
