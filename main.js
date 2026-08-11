@@ -764,6 +764,13 @@ function animate() {
     composer.render(); requestAnimationFrame(animate);
 }
 animate();
+
+// 측정·검증용 훅. `?debug` 쿼리가 있을 때만 열린다(일반 실행에는 노출되지 않는다).
+// measurements/ 의 스크립트가 이 훅으로 적분기와 에너지를 직접 구동한다 — 논문 §IV의
+// 수치를 손으로 코드를 고쳐가며 뽑지 않고 재현 가능하게 만들기 위한 것이다.
+if(new URLSearchParams(location.search).has('debug')) {
+    window.__warped = { state, CONFIG, computeAcceleration, createMass, massToScale, scaleToMass, camera, scene, shaderMat };
+}
 window.addEventListener("resize", () => {
     renderer.setSize(window.innerWidth, window.innerHeight); 
     composer.setSize(window.innerWidth, window.innerHeight);
