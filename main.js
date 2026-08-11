@@ -9,18 +9,28 @@ import { gsap } from "https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js";
 
 // 전역 설정
 const CONFIG = {
-    planeSize: 1000, 
-    maxMassCount: 5, 
-    maxMassValue: 200, 
+    planeSize: 1000,
+    maxMassCount: 5,
+    // 상한을 낮게 잡는 이유: 반지름이 질량에 비례하므로 큰 질량은 구가 화면을 지배하고,
+    // 곡면 깊이는 최대 5개까지 선형 중첩되어 격자가 과도하게 늘어난다.
+    // 100 → 반지름 25, M=5, 단일 질량 우물 깊이 약 139.
+    maxMassValue: 100,
     minMassValue: 20,
-    gridScale: 100.0, 
+    // 질량 ↔ 화면상 구 반지름 변환 상수. 아래 massToScale()/scaleToMass()로만 쓸 것.
+    // 예전에는 이 값들이 세 곳(고스트 초기 크기, 충전 중 미리보기, 확정 시 역산)에 리터럴로
+    // 흩어져 있었고, 하필 scaleBase와 1/scalePerMass가 둘 다 5라서 한쪽만 고치는 사고가 나기
+    // 쉬웠다 — §4-1의 음수 질량 버그와 같은 구조다.
+    scaleBase: 5.0,          // 질량 0에 해당하는 최소 반지름
+    scalePerMass: 0.2,       // 질량 1당 반지름 증가분
+    chargeRatePerSec: 50.0,  // 누르고 있는 동안 초당 늘어나는 질량
+    gridScale: 100.0,
     gravityK: 100.0, 
     epsilon: 80.0, 
     userMass: 20,
     userHeightOffset: 15,
     physicsSpeedScale: 100.0,
-    // Flamm paraboloid: z(r)=sqrt(8M(r-2M)). 시뮬레이션 질량(20~200)을 기하학적 질량 M으로 옮기는 배율.
-    // 0.05 → M = 1~10, throat(2M) = 2~20. 구의 반지름(9~45)보다 목이 가늘어야 우물이 '굴뚝'이 아니라
+    // Flamm paraboloid: z(r)=sqrt(8M(r-2M)). 시뮬레이션 질량(20~100)을 기하학적 질량 M으로 옮기는 배율.
+    // 0.05 → M = 1~5, throat(2M) = 2~10. 구의 반지름(9~25)보다 목이 가늘어야 우물이 '굴뚝'이 아니라
     // '깔때기'가 되고, 구가 우물에 반쯤 잠긴 모습으로 보인다. 이 배율을 키우면 구가 목 안에 갇혀 가려진다.
     massToM: 0.05,
     embedR0: 490.0,  // 임베딩 절단 반지름. 고무판 모드의 가장자리 페이드(350~490)와 끝점을 맞춘다.
@@ -52,6 +62,10 @@ const CONFIG = {
     observerArrivalPad: 45.0,
     observerFreeThrust: 110.0    // 도착 후에는 중력이 꺼지므로 추진력만으로 움직인다
 };
+// 질량 ↔ 구 반지름은 반드시 이 한 쌍을 통해서만 오간다(서로의 역함수).
+const massToScale = (mass) => CONFIG.scaleBase + mass * CONFIG.scalePerMass;
+const scaleToMass = (scale) => (scale - CONFIG.scaleBase) / CONFIG.scalePerMass;
+
 const STAR_COLORS = [0x9bb0ff, 0xaabfff, 0xcad7ff, 0xf8f7ff, 0xfff4ea, 0xffd2a1, 0xffcc6f];
 const state = {
     viewMode: 'GOD', model: 'RUBBER', isSpawning: false, isCharging: false, chargeStartTime: 0, masses: [], spawnsInFlight: 0,
@@ -292,7 +306,14 @@ function createStarfield() {
     const stars = new THREE.Points(geo, mat); scene.add(stars); return stars;
 }
 createStarfield();
-const sunGeo = new THREE.SphereGeometry(15, 32, 32); const sunMat = new THREE.MeshBasicMaterial({ color: 0xffffee }); const sun = new THREE.Mesh(sunGeo, sunMat); sun.position.set(0, 200, 0); scene.add(sun); sun.add(new THREE.PointLight(0xffaa00, 2, 1000));
+// 조명. 예전에는 씬 한가운데 떠 있는 '태양' 구가 유일한 광원이었고, 질량이 하나라도 생기면
+// sun.visible=false로 숨겼다. 그런데 three.js는 visible=false인 객체의 자식 광원을 수집하지
+// 않으므로 PointLight까지 함께 꺼져, 정작 질량이 있을 때는 구가 emissive만으로 납작하게 보였다.
+// 태양 구를 없애고 질량 개수와 무관하게 항상 켜져 있는 조명으로 대체한다.
+scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+const keyLight = new THREE.DirectionalLight(0xfff0e0, 1.2);
+keyLight.position.set(200, 400, 300);
+scene.add(keyLight);
 const planeGeo = new THREE.PlaneGeometry(CONFIG.planeSize, CONFIG.planeSize, 200, 200);
 const shaderMat = new THREE.ShaderMaterial({
     vertexShader: vertShader, fragmentShader: fragShader, side: THREE.DoubleSide, transparent: true,
@@ -325,7 +346,6 @@ function updateShaderData() {
         btnAddEl.disabled = false;
         btnAddEl.innerText = "✚ Add Mass (M)";
     }
-    sun.visible = (state.masses.length === 0);
 }
 
 // 질량 i가 다른 질량들로부터 받는 가속도(ax, az). 위치만 보는 순수 함수 —
@@ -636,7 +656,8 @@ window.addEventListener("pointerdown", (e) => {
         raycaster.setFromCamera(pointer, camera);
         state.isCharging = true; state.chargeStartTime = performance.now();
         spawnGhost = new THREE.Mesh(massGeometry, new THREE.MeshBasicMaterial({color: 0xffffff, wireframe:true, transparent:true, opacity:0.5}));
-        spawnGhost.scale.set(9, 9, 9); // 최소 질량(=minMassValue)에 해당하는 초기 크기. 빠른 클릭 시 음수 질량 방지
+        // 최소 질량에 해당하는 초기 크기. 홀드 없이 빠르게 클릭해도 음수 질량이 나오지 않는다.
+        spawnGhost.scale.setScalar(massToScale(CONFIG.minMassValue));
         spawnGhost.position.copy(spawnPointFromRay()); scene.add(spawnGhost);
     }
 });
@@ -664,10 +685,10 @@ function spawnPointFromRay() {
 window.addEventListener("pointermove", (e) => {
     if(state.isSpawning && state.isCharging && spawnGhost) {
         const duration = (performance.now() - state.chargeStartTime) / 1000;
-        let currentMass = Math.min(CONFIG.minMassValue + duration * 50, CONFIG.maxMassValue);
-        let scale = 5 + currentMass * 0.2; 
-        scale = Math.min(scale, 50); 
-        spawnGhost.scale.set(scale, scale, scale);
+        // 질량을 먼저 상한으로 자르고 반지름은 거기서 유도한다. 반지름을 따로 한 번 더 자르면
+        // 두 상한이 어긋날 수 있다(예전의 Math.min(scale, 50)은 질량 상한에 이미 가려진 죽은 코드였다).
+        const currentMass = Math.min(CONFIG.minMassValue + duration * CONFIG.chargeRatePerSec, CONFIG.maxMassValue);
+        spawnGhost.scale.setScalar(massToScale(currentMass));
     }
 });
 window.addEventListener("pointerup", (e) => {
@@ -680,10 +701,12 @@ window.addEventListener("pointerup", (e) => {
     const overUI = document.elementFromPoint(e.clientX, e.clientY)?.closest("#ui-layer, #context-menu");
     if(overUI) { endSpawnMode(); return; }
     if(state.isCharging && spawnGhost) {
-        const finalScale = spawnGhost.scale.x;
-        const finalMass = Math.max(CONFIG.minMassValue, (finalScale - 5) * 5); // 음수 질량 방지
+        // 질량을 [최소, 최대]로 자른 뒤 반지름을 그 질량에서 되돌린다. 고스트 반지름을 그대로
+        // 쓰면 반올림이나 이후 수정으로 둘이 어긋날 수 있으므로, 확정 값은 질량 하나에서만 유도한다.
+        const finalMass = THREE.MathUtils.clamp(
+            scaleToMass(spawnGhost.scale.x), CONFIG.minMassValue, CONFIG.maxMassValue);
         const position = spawnGhost.position.clone();
-        createMass(position, finalScale, finalMass);
+        createMass(position, massToScale(finalMass), finalMass);
     }
     // charging 여부와 무관하게 항상 스폰 모드 종료 → '버튼 먹통' 고착 방지
     endSpawnMode();
