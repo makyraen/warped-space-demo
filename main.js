@@ -28,6 +28,18 @@ const CONFIG = {
     // 격자를 300~500에서 지운다. 그 구역까지 질량이 나가면 "허공에 뜬 공"으로 보이므로 안쪽에 가둔다.
     massLimit: 340.0,
     dropHeight: 220.0,  // 질량을 이 높이에서 떨어뜨린다(생성 순간을 눈으로 좇을 수 있게)
+    // ── Schwarzschild 측지선 운동 (FLAMM 모드) ──
+    // 표면(Flamm)과 같은 M = massToM·mass를 쓴다. 옛 뉴턴 궤도의 초기 속도(10~30)는
+    // gravityK·physicsSpeedScale로 100배 증폭된 힘에 맞춘 값이라 실제 M에는 탈출속도를 훨씬
+    // 웃돈다 — 그대로 재사용하면 궤도가 아니라 직선으로 날아간다. 그래서 FLAMM으로 들어가는
+    // 순간(생성 또는 모델 토글) 그 반경에서의 원궤도 각운동량(L_circ)을 다시 계산해 쓴다.
+    geodesicEccMin: 1.02, geodesicEccMax: 1.25,  // L_circ에 곱하는 이심률 계수 → 세차가 보이는 타원궤도
+    geodesicMinRFactor: 3.5,  // L_circ 공식(r>3M 필요)의 분모 안전 하한, ×M
+    geodesicHorizonPad: 2.5,  // 이 반경(×M) 안쪽은 사건지평선 근접 특이점 방지용 정지 클램프(포획/병합 미구현)
+    // dτ(고유시간)를 실제 프레임 시간보다 빨리 재생하는 배율. G=M=1 단위에서 진짜 궤도 주기는
+    // 화면 스케일(r~100~300)에서 수십 분이 걸려 보이지 않는다 — 궤적 자체는 그대로 두고
+    // "빨리 감기"만 하는 것이므로 물리(방정식)는 바뀌지 않는다.
+    geodesicTimeScale: 260.0,
     // ── 관찰자(1인칭) 모드 ──
     // 중력에 이끌려 우물로 '떨어지는' 것이 주가 되고, 키 조작은 그 위에 얹는 미세 조정이다.
     // 추진력이 중력만큼 세면 자유낙하가 조작에 묻혀 체험이 사라진다.
@@ -125,6 +137,12 @@ window.addEventListener('keydown', (e) => {
         state.fps.freeFlight = !state.fps.freeFlight;
         updateObserverHud();
     }
+    // V: 'Switch View' 버튼과 동일 — GOD ↔ OBSERVER 전환
+    if(e.code === 'KeyV') { if(state.viewMode === 'GOD') setFpsView(); else setGodView(); }
+    // M: 'Add Mass' 시작. 스폰 모드 중이면 다시 눌러 취소(Esc와 동일 동작)
+    if(e.code === 'KeyM') { if(state.isSpawning) endSpawnMode(); else startSpawnMode(); }
+    // C: 'Model' 버튼과 동일 — 고무판 ↔ Flamm 토글 (Change model. M은 Add Mass가 이미 씀)
+    if(e.code === 'KeyC') { toggleModel(); }
     if(keyState.hasOwnProperty(e.code)) keyState[e.code] = true;
 });
 window.addEventListener('keyup', (e) => { if(keyState.hasOwnProperty(e.code)) keyState[e.code] = false; });
@@ -306,48 +324,146 @@ function updateShaderData() {
         btnAddEl.innerText = "Max Limit Reached";
     } else if(!state.isSpawning) {
         btnAddEl.disabled = false;
-        btnAddEl.innerText = "✚ Add Mass";
+        btnAddEl.innerText = "✚ Add Mass (M)";
     }
     sun.visible = (state.masses.length === 0);
 }
 
-// 물리 시뮬레이션 업데이트
-function updateMassPhysics(deltaTime) {
-    // 속도 계산 
-    for(let i=0; i<state.masses.length; i++) {
-        const m1 = state.masses[i];
-        if (i === 0) { m1.velocity.set(0, 0, 0); continue; } // 중심별 고정
-        if (m1.settling) { m1.velocity.set(0, 0, 0); continue; } // 가라앉는 중엔 제자리
-        for(let j=0; j<state.masses.length; j++) {
-            if(i === j) continue;
-            const m2 = state.masses[j];
-            const m2Mass = m2.mass * m2.growth;   // 생성 중인 질량은 중력도 서서히 켜진다
-            if(m2Mass <= 0) continue;
-            const dx = m2.mesh.position.x - m1.mesh.position.x; const dz = m2.mesh.position.z - m1.mesh.position.z;
-            const distSq = dx*dx + dz*dz + CONFIG.epsilon*CONFIG.epsilon; const dist = Math.sqrt(distSq);
-            const force = (CONFIG.gravityK * m1.mass * m2Mass) / distSq * CONFIG.physicsSpeedScale;
-            const ax = (dx/dist) * force; const az = (dz/dist) * force;
-            m1.velocity.x += (ax / m1.mass) * deltaTime; m1.velocity.z += (az / m1.mass) * deltaTime;
-        }
+// 질량 i가 다른 질량들로부터 받는 가속도(ax, az). 위치만 보는 순수 함수 —
+// leapfrog가 스텝 앞/뒤에서 두 번 불러 "반씩 섞은 힘"을 만드는 데 쓴다.
+function computeAcceleration(i) {
+    const m1 = state.masses[i];
+    let ax = 0, az = 0;
+    for(let j=0; j<state.masses.length; j++) {
+        if(i === j) continue;
+        const m2 = state.masses[j];
+        const m2Mass = m2.mass * m2.growth;   // 생성 중인 질량은 중력도 서서히 켜진다
+        if(m2Mass <= 0) continue;
+        const dx = m2.mesh.position.x - m1.mesh.position.x; const dz = m2.mesh.position.z - m1.mesh.position.z;
+        const distSq = dx*dx + dz*dz + CONFIG.epsilon*CONFIG.epsilon; const dist = Math.sqrt(distSq);
+        const force = (CONFIG.gravityK * m1.mass * m2Mass) / distSq * CONFIG.physicsSpeedScale;
+        ax += (dx/dist) * force / m1.mass;
+        az += (dz/dist) * force / m1.mass;
     }
-    
-    // 위치 및 높이 업데이트
+    return { ax, az };
+}
+
+function isIntegrated(i) {
+    const m1 = state.masses[i];
+    return !(i === 0 || m1.settling); // 중심별 고정 + 가라앉는 중엔 제자리
+}
+
+// x,z 원형 경계 + 격자면 높이 반영. 뉴턴/측지선 두 경로가 공유한다.
+function applyBoundaryAndHeight(obj) {
+    const limit = CONFIG.massLimit;
+    const r = Math.sqrt(obj.mesh.position.x**2 + obj.mesh.position.z**2);
+    if(r > limit) {
+        const nx = obj.mesh.position.x / r, nz = obj.mesh.position.z / r;
+        obj.mesh.position.x = nx * limit; obj.mesh.position.z = nz * limit;
+        const vn = obj.velocity.x * nx + obj.velocity.z * nz;
+        if(vn > 0) { obj.velocity.x -= 1.8 * vn * nx; obj.velocity.z -= 1.8 * vn * nz; }
+    }
+    const myPos = obj.mesh.position;
+    obj.mesh.position.y = restHeight(myPos.x, myPos.z, obj.mesh.scale.x) + obj.dropOffset;
+}
+
+function updateMassPhysics(deltaTime) {
+    if(state.model === 'FLAMM') updateGeodesicPhysics(deltaTime);
+    else updateNewtonianPhysics(deltaTime);
+}
+
+// 물리 시뮬레이션 업데이트 (leapfrog / kick-drift-kick, 뉴턴 N-body — RUBBER 모드)
+// Euler(스텝 시작 시점의 힘 하나로 스텝 전체를 민다)는 근접 통과 시 오차가 매번 같은 부호로
+// 누적돼 계에 에너지가 주입되고 궤도가 붕괴한다. leapfrog는 스텝의 앞/뒤 힘을 반씩 섞어
+// 심플렉틱(시간 가역적) 적분을 만든다 — 에너지가 정확히 보존되진 않지만 발산 없이 진동만 한다.
+function updateNewtonianPhysics(deltaTime) {
+    const halfDt = deltaTime / 2;
+
+    // kick (반 스텝): 현재 위치에서의 힘으로 속도를 절반만 갱신
+    state.masses.forEach((m1, i) => {
+        if(!isIntegrated(i)) { m1.velocity.set(0, 0, 0); return; }
+        m1.geo = null; // RUBBER로 있는 동안은 측지선 상태를 버려 다음 FLAMM 진입 시 새로 잡는다
+        const { ax, az } = computeAcceleration(i);
+        m1.velocity.x += ax * halfDt; m1.velocity.z += az * halfDt;
+    });
+
+    // drift (한 스텝): 반 스텝 앞선 속도로 위치 이동
     state.masses.forEach((obj) => {
         obj.mesh.position.addScaledVector(obj.velocity, deltaTime);
-        // 사각형 벽이 아니라 원형 경계로 가둔다. 격자가 보이는 영역이 원형이므로 모서리로 나가면
-        // 그리드가 페이드로 지워진 구역에 공이 놓여 "허공에 뜬" 것처럼 보인다.
-        const limit = CONFIG.massLimit;
-        const r = Math.sqrt(obj.mesh.position.x**2 + obj.mesh.position.z**2);
-        if(r > limit) {
-            const nx = obj.mesh.position.x / r, nz = obj.mesh.position.z / r;
-            obj.mesh.position.x = nx * limit; obj.mesh.position.z = nz * limit;
-            // 경계 법선 방향 속도 성분만 반사(접선 성분은 유지)
-            const vn = obj.velocity.x * nx + obj.velocity.z * nz;
-            if(vn > 0) { obj.velocity.x -= 1.8 * vn * nx; obj.velocity.z -= 1.8 * vn * nz; }
-        }
+        applyBoundaryAndHeight(obj);
+    });
 
-        const myPos = obj.mesh.position;
-        obj.mesh.position.y = restHeight(myPos.x, myPos.z, obj.mesh.scale.x) + obj.dropOffset;
+    // kick (나머지 반 스텝): 새 위치에서 힘을 재계산해 속도를 마저 갱신
+    state.masses.forEach((m1, i) => {
+        if(!isIntegrated(i)) return;
+        const { ax, az } = computeAcceleration(i);
+        m1.velocity.x += ax * halfDt; m1.velocity.z += az * halfDt;
+    });
+}
+
+// 적도면(θ=π/2) Schwarzschild 측지선 — FLAMM 모드.
+// 궤도 질량(i>0)은 중심 질량(index 0)의 기하만 느끼는 시험 입자로 취급한다. GR은 비선형이라
+// 여러 궤도체가 서로에게도 영향을 주는 엄밀해가 없으므로(§4-2·§8), 서로는 무시한다.
+//
+// 보존량 E, L로 얻는 유효 퍼텐셜 V_eff(r) = (1-2M/r)(1+L²/r²)에서
+//   d²r/dτ² = -½ dV_eff/dr = -M/r² + L²/r³ - 3ML²/r⁴          (뉴턴 항 + 원심 항 + GR 보정 항)
+//   dφ/dτ  = L/r²
+// 마지막 항(-3ML²/r⁴)이 뉴턴에 없는 GR의 서명이다 — 근일점 세차, ISCO, 광자구를 만드는 항.
+function geodesicRadialAccel(r, L, M) {
+    const invR = 1 / r;
+    return -M * invR*invR + L*L * invR*invR*invR - 3*M*L*L * invR*invR*invR*invR;
+}
+
+// obj의 현재 위치·속도(둘 다 중심 질량 기준 상대값)로부터 측지선 상태(r, φ, vr, L)를 새로 잡는다.
+// 스폰 직후 첫 진입, 또는 RUBBER↔FLAMM 토글 직후에 호출된다.
+// 옛 궤도 속도(뉴턴 힘 증폭에 맞춰 조정된 10~30 범위)는 실제 M 단위에서는 의미가 없으므로
+// 그대로 옮기지 않는다 — 현재 반경에서 다시 "그럴듯한 근사원궤도" 각운동량을 합성한다.
+function initGeodesic(obj, center, M) {
+    const dx = obj.mesh.position.x - center.mesh.position.x;
+    const dz = obj.mesh.position.z - center.mesh.position.z;
+    const r = Math.max(Math.sqrt(dx*dx + dz*dz), CONFIG.geodesicHorizonPad * M);
+    const phi = Math.atan2(dz, dx);
+    const rSafe = Math.max(r, CONFIG.geodesicMinRFactor * M); // L_circ 공식은 r>3M 필요
+    const Lcirc = Math.sqrt(M * rSafe*rSafe / (rSafe - 3*M));
+    const ecc = CONFIG.geodesicEccMin + Math.random() * (CONFIG.geodesicEccMax - CONFIG.geodesicEccMin);
+    obj.geo = { r, phi, vr: 0, L: Lcirc * ecc };
+}
+
+function updateGeodesicPhysics(deltaTime) {
+    if(state.masses.length === 0) return;
+    const center = state.masses[0];
+    const M = center.mass * center.growth * CONFIG.massToM; // Flamm 표면과 동일한 M
+    const dtau = deltaTime * CONFIG.geodesicTimeScale;
+
+    state.masses.forEach((obj, i) => {
+        // 중심별 고정(§5-A: 물리 아니라 연출) · 가라앉는 중 · 중심 질량이 아직 성장 중(M=0, 기하 미정의)
+        // — 이 경우들도 높이(y)는 매 프레임 갱신해야 하므로 return 대신 아래로 흘려보낸다.
+        const skipOrbit = (i === 0) || obj.settling || (M <= 0);
+        if(skipOrbit) { obj.velocity.set(0, 0, 0); applyBoundaryAndHeight(obj); return; }
+
+        if(!obj.geo) initGeodesic(obj, center, M);
+        const g = obj.geo;
+        const rFloor = CONFIG.geodesicHorizonPad * M;
+
+        // leapfrog: r, vr을 kick-drift-kick으로. φ는 갱신된 r로 구적(quadrature).
+        g.vr += geodesicRadialAccel(g.r, g.L, M) * dtau / 2;
+        g.r += g.vr * dtau;
+
+        if(g.r > CONFIG.massLimit) { g.r = CONFIG.massLimit; if(g.vr > 0) g.vr *= -0.8; }
+        if(g.r < rFloor) { g.r = rFloor; g.vr = 0; } // 지평선 근접 클램프. 포획/병합은 미구현(한계로 명시)
+
+        g.phi += (g.L / (g.r*g.r)) * dtau;
+        g.vr += geodesicRadialAccel(g.r, g.L, M) * dtau / 2;
+
+        const cosP = Math.cos(g.phi), sinP = Math.sin(g.phi);
+        obj.mesh.position.x = center.mesh.position.x + g.r * cosP;
+        obj.mesh.position.z = center.mesh.position.z + g.r * sinP;
+        // RUBBER로 되돌아갈 때 끊김 없이 이어지도록 Cartesian 속도도 함께 유지해 둔다.
+        const vtan = g.L / g.r;
+        obj.velocity.x = g.vr * cosP - vtan * sinP;
+        obj.velocity.z = g.vr * sinP + vtan * cosP;
+
+        applyBoundaryAndHeight(obj);
     });
 }
 
@@ -455,20 +571,24 @@ const MODEL_NOTES = {
     RUBBER: "Rubber-sheet: 뉴턴 퍼텐셜 모양 (−K·m/r). 공간 곡률만 흉내내는 비유.",
     FLAMM: "Flamm paraboloid: z(r)=√(8M(r−2M)), r=500에서 절단. 단일 질량은 엄밀, 다중 질량은 선형 중첩 근사."
 };
-btnModel.addEventListener("click", () => {
+// 버튼 클릭과 N 키가 공유하는 토글 로직.
+function toggleModel() {
     state.model = (state.model === 'RUBBER') ? 'FLAMM' : 'RUBBER';
     const isFlamm = state.model === 'FLAMM';
     shaderMat.uniforms.uMode.value = isFlamm ? 1 : 0;
-    btnModel.innerText = isFlamm ? "Model: Flamm" : "Model: Rubber-sheet";
+    btnModel.innerText = (isFlamm ? "Model: Flamm" : "Model: Rubber-sheet") + " (C)";
     btnModel.classList.toggle("flamm", isFlamm);
     modelNote.innerText = MODEL_NOTES[state.model];
-});
+}
+btnModel.addEventListener("click", toggleModel);
 modelNote.innerText = MODEL_NOTES.RUBBER;
-btnAdd.addEventListener("click", () => {
+// 버튼 클릭과 M 키가 공유하는 진입 로직.
+function startSpawnMode() {
     if(state.isSpawning) return; // 이미 스폰 모드면 무시(중복 진입 방지)
     if(state.masses.length + state.spawnsInFlight >= CONFIG.maxMassCount) return;
-    state.isSpawning = true; btnAdd.classList.add("active"); btnAdd.innerText = "Click & Hold on Plane..."; document.body.style.cursor = "crosshair";
-});
+    state.isSpawning = true; btnAdd.classList.add("active"); btnAdd.innerText = "Click & Hold on Plane... (M/Esc to cancel)"; document.body.style.cursor = "crosshair";
+}
+btnAdd.addEventListener("click", startSpawnMode);
 
 // 스폰 모드를 안전하게 종료(성공/취소 공통). 고착 상태 복구용.
 function endSpawnMode() {
@@ -549,6 +669,13 @@ window.addEventListener("pointermove", (e) => {
 });
 window.addEventListener("pointerup", (e) => {
     if(!state.isSpawning) return;
+    // pointerdown에는 UI 위 클릭을 거르는 가드가 있는데 pointerup엔 없었다 — 충전 중 마우스를
+    // Reset/Toggle 같은 UI 버튼 위로 가져가 놓으면, 그 버튼 클릭과 동시에 질량이 생성돼 버려
+    // 버튼 동작과 뒤섞이는 문제가 있었다(QA에서 발견, §5-B). UI 위에서 놓으면 그냥 취소한다.
+    // canvas에서 누른 포인터는 암묵적으로 캡처될 수 있어 e.target이 여전히 canvas를 가리킬 수
+    // 있으므로, e.target 대신 실제 좌표 밑에 뭐가 있는지(elementFromPoint)로 판단한다.
+    const overUI = document.elementFromPoint(e.clientX, e.clientY)?.closest("#ui-layer, #context-menu");
+    if(overUI) { endSpawnMode(); return; }
     if(state.isCharging && spawnGhost) {
         const finalScale = spawnGhost.scale.x;
         const finalMass = Math.max(CONFIG.minMassValue, (finalScale - 5) * 5); // 음수 질량 방지
