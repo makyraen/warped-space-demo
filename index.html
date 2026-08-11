@@ -67,6 +67,9 @@
         uniform int uMode;       // 0 = rubber-sheet(뉴턴 근사), 1 = Flamm paraboloid
         uniform float uR0;       // 임베딩 절단 반지름 (여기서 깊이 = 0)
         uniform float uMassToM;  // 시뮬레이션 질량 → 기하학적 질량 M
+        // 고무판 모드의 '당김' 연출 세기(1=기본, 0=끔). 이 연출은 Flamm 모드에는 없으므로,
+        // 두 모델의 곡면을 논문 그림으로 대조할 때는 0으로 꺼서 깊이 함수만 남길 수 있다.
+        uniform float uPullStrength;
 
         varying float vHeight;
         varying vec2 vUv;
@@ -114,7 +117,7 @@
                 //
                 // 당김 거리를 중심까지 거리의 35%로 제한한다. 이 상한이 없으면 질량 근처 정점이
                 // 중심을 지나쳐 반대편으로 넘어가 격자가 자기 위로 접히고(fold-over) 면이 찢어진다.
-                float pullMag = min(abs(depth) * 0.2, 0.35 * rSoft);
+                float pullMag = min(abs(depth) * 0.2, 0.35 * rSoft) * uPullStrength;
                 pull.x -= (dx / rSoft) * pullMag;
                 pull.y -= (dz / rSoft) * pullMag;
             }

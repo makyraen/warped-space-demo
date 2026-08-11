@@ -29,6 +29,10 @@ const CONFIG = {
     // 포화가 없다. 두 모델의 깊이 범위(우물 바닥 ~125~194, 격자 가장자리 ~24~29)를 모두
     // 담도록 잡았다. 낮추면 얕은 우물도 진하게, 높이면 깊은 우물만 진하게 보인다.
     depthColorScale: 70.0,
+    // 고무판 모드에서 격자선을 중심 쪽으로 당기는 연출의 세기(1=기본, 0=끔).
+    // Flamm 모드에는 이 연출이 없다. 두 모델의 곡면을 논문 그림으로 대조할 때
+    // 이 값을 0으로 두면 '깊이 함수의 차이'만 남길 수 있다(figure/README.md 참고).
+    rubberPullStrength: 1.0,
     // 후처리 블룸. threshold를 낮게 두면 격자선까지 번져 곡면 형태가 흰색으로 뭉개진다.
     bloomThreshold: 0.55, bloomStrength: 0.9, bloomRadius: 0.5,
     gravityK: 100.0,
@@ -335,7 +339,7 @@ scene.add(keyLight);
 const planeGeo = new THREE.PlaneGeometry(CONFIG.planeSize, CONFIG.planeSize, 200, 200);
 const shaderMat = new THREE.ShaderMaterial({
     vertexShader: vertShader, fragmentShader: fragShader, side: THREE.DoubleSide, transparent: true,
-    uniforms: { uTime: { value: 0 }, uMassCount: { value: 0 }, uMassPositions: { value: Array.from({ length: 5 }, () => new THREE.Vector3()) }, uMassValues: { value: new Float32Array(5) }, uK: { value: CONFIG.gravityK }, uEpsilon: { value: CONFIG.epsilon }, uGridColor: { value: new THREE.Color(0x0088ff) }, uBaseColor: { value: new THREE.Color(0x02020a) }, uGridScale: { value: CONFIG.gridScale }, uMode: { value: 0 }, uR0: { value: CONFIG.embedR0 }, uMassToM: { value: CONFIG.massToM }, uDepthScale: { value: CONFIG.depthColorScale }, }
+    uniforms: { uTime: { value: 0 }, uMassCount: { value: 0 }, uMassPositions: { value: Array.from({ length: 5 }, () => new THREE.Vector3()) }, uMassValues: { value: new Float32Array(5) }, uK: { value: CONFIG.gravityK }, uEpsilon: { value: CONFIG.epsilon }, uGridColor: { value: new THREE.Color(0x0088ff) }, uBaseColor: { value: new THREE.Color(0x02020a) }, uGridScale: { value: CONFIG.gridScale }, uMode: { value: 0 }, uR0: { value: CONFIG.embedR0 }, uMassToM: { value: CONFIG.massToM }, uDepthScale: { value: CONFIG.depthColorScale }, uPullStrength: { value: CONFIG.rubberPullStrength }, }
 });
 const plane = new THREE.Mesh(planeGeo, shaderMat); plane.rotation.x = -Math.PI / 2; scene.add(plane);
 const massGeometry = new THREE.SphereGeometry(1, 64, 64); const dragPlane = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), new THREE.MeshBasicMaterial({ visible: false })); dragPlane.rotation.x = -Math.PI / 2; scene.add(dragPlane);
