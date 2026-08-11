@@ -27,7 +27,6 @@ const CONFIG = {
     // 질량이 돌아다닐 수 있는 반경. embedR0 밖은 Flamm 깊이가 0으로 잘리고, 프래그먼트 셰이더가
     // 격자를 300~500에서 지운다. 그 구역까지 질량이 나가면 "허공에 뜬 공"으로 보이므로 안쪽에 가둔다.
     massLimit: 340.0,
-    dropHeight: 220.0,  // 질량을 이 높이에서 떨어뜨린다(생성 순간을 눈으로 좇을 수 있게)
     // ── Schwarzschild 측지선 운동 (FLAMM 모드) ──
     // 표면(Flamm)과 같은 M = massToM·mass를 쓴다. 옛 뉴턴 궤도의 초기 속도(10~30)는
     // gravityK·physicsSpeedScale로 100배 증폭된 힘에 맞춘 값이라 실제 M에는 탈출속도를 훨씬
@@ -364,7 +363,7 @@ function applyBoundaryAndHeight(obj) {
         if(vn > 0) { obj.velocity.x -= 1.8 * vn * nx; obj.velocity.z -= 1.8 * vn * nz; }
     }
     const myPos = obj.mesh.position;
-    obj.mesh.position.y = restHeight(myPos.x, myPos.z, obj.mesh.scale.x) + obj.dropOffset;
+    obj.mesh.position.y = restHeight(myPos.x, myPos.z, obj.mesh.scale.x);
 }
 
 function updateMassPhysics(deltaTime) {
@@ -476,8 +475,13 @@ function createMass(pos, scale, mass) {
         roughness: 0.3, metalness: 0.5
     });
     const mesh = new THREE.Mesh(massGeometry, material);
-    mesh.scale.set(scale, scale, scale);
-    mesh.position.set(pos.x, CONFIG.dropHeight, pos.z);  // 첫 프레임 깜빡임 방지(이후 매 프레임 갱신)
+    // 스케일 0에서 시작해 부풀어오른다(아래 팝 트윈). 매장 곡면이 꺼지는 방향은 그림을 그리려고
+    // 빌려온 여분 차원이지 실제 공간의 '아래'가 아니므로, 질량을 위에서 떨어뜨리면 화면이
+    // "위에서 아래로 당기는 배경 중력이 있다"고 말하게 된다. 그것은 하필 이 프로젝트가 비판하는
+    // 고무판 비유의 순환논법(설명하려는 중력을 설명에 이미 사용)을 그대로 재현하는 그림이다.
+    // 스케일 팝은 방향을 암시하지 않으면서 생성 위치를 똑같이 눈에 띄게 해준다.
+    mesh.scale.set(0, 0, 0);
+    mesh.position.set(pos.x, surfaceDepth(pos.x, pos.z), pos.z);  // 첫 프레임 깜빡임 방지(이후 매 프레임 갱신)
     mesh.userData = { isMass: true, massValue: mass };
     scene.add(mesh);
     const initialVelocity = new THREE.Vector3();
@@ -487,24 +491,20 @@ function createMass(pos, scale, mass) {
         initialVelocity.copy(tangent).multiplyScalar(speed);
     }
     // 질량을 즉시 등록하되 기여도(growth)를 0에서 키운다. 우물이 서서히 깊어지고 공은 매 프레임
-    // restHeight를 따라 그 안으로 가라앉는다.
+    // restHeight를 따라 그 안으로 가라앉는다 = "질량이 놓이자 시공간이 반응한다".
     // 예전에는 공을 y=0까지 떨어뜨린 뒤 착지 순간에 등록해서, 우물이 한 프레임 만에 생기며
     // 공이 바닥으로 순간이동했다("팍 닿는" 느낌). settling 동안은 N-body 적분을 멈춰 둔다.
-    // 높이는 두 단계로 나뉜다.
-    //   ① 낙하: dropOffset이 위에서 0으로 줄며 공이 면으로 떨어진다(가속하는 ease-in).
-    //   ② 가라앉기: growth가 0→1로 자라며 우물이 깊어지고, 공은 restHeight를 따라 그 안으로 잠긴다.
-    // 매 프레임 y = restHeight(현재 우물) + dropOffset 이므로 두 단계가 끊김 없이 이어진다.
     const obj = {
         mesh: mesh, mass: mass, velocity: initialVelocity,
-        growth: 0, settling: true, dropOffset: CONFIG.dropHeight
+        growth: 0, settling: true
     };
     state.masses.push(obj);
     updateShaderData();
+    spawnRipple(pos.x, pos.z);   // 질량이 놓이는 순간 곡면을 타고 번진다
 
-    gsap.to(obj, {
-        dropOffset: 0, duration: 0.7, ease: "power2.in",   // 자유낙하처럼 가속
-        onComplete: () => spawnRipple(pos.x, pos.z)         // 파문은 '닿는 순간'에
-    });
+    // 구가 부풀어오른다. restHeight가 scale을 반지름으로 쓰므로(구 지오메트리 반지름 = 1)
+    // 커지는 동안 자연스럽게 우물 위로 떠오른다.
+    gsap.to(mesh.scale, { x: scale, y: scale, z: scale, duration: 0.45, ease: "back.out(1.7)" });
     gsap.to(obj, {
         growth: 1, duration: 1.4, ease: "power2.inOut",
         onComplete: () => { obj.settling = false; updateShaderData(); }
@@ -558,7 +558,8 @@ const modelNote = document.getElementById("model-note");
 btnReset.addEventListener("click", () => {
     // massGeometry는 모든 질량이 공유하므로 dispose 하지 않음(공유 지오메트리 파괴 방지). material만 정리.
     // 생성 트윈이 도는 중에 지우면, 죽은 객체를 계속 건드리다가 질량도 없는데 파문이 터진다.
-    state.masses.forEach(m => { gsap.killTweensOf(m); scene.remove(m.mesh); m.mesh.material.dispose(); });
+    // growth 트윈은 obj에, 팝 트윈은 mesh.scale에 걸려 있으므로 둘 다 죽여야 한다.
+    state.masses.forEach(m => { gsap.killTweensOf(m); gsap.killTweensOf(m.mesh.scale); scene.remove(m.mesh); m.mesh.material.dispose(); });
     state.masses = []; state.spawnsInFlight = 0;
     if(state.isSpawning) endSpawnMode();
     updateShaderData(); setGodView();
@@ -617,7 +618,9 @@ btnDelete.addEventListener("click", () => {
     if(selectedMassForDelete) {
         const index = state.masses.findIndex(m => m.mesh === selectedMassForDelete);
         if(index > -1) {
-            gsap.killTweensOf(state.masses[index]);   // 생성 중이던 질량을 지워도 파문이 남지 않도록
+            // 생성 중이던 질량을 지워도 트윈이 죽은 객체를 계속 건드리지 않도록(growth + 팝 둘 다)
+            gsap.killTweensOf(state.masses[index]);
+            gsap.killTweensOf(state.masses[index].mesh.scale);
             state.masses.splice(index, 1);
             scene.remove(selectedMassForDelete); selectedMassForDelete.material.dispose();
             updateShaderData();
