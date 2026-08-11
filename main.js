@@ -56,6 +56,17 @@ const CONFIG = {
     // 화면 스케일(r~100~300)에서 수십 분이 걸려 보이지 않는다 — 궤적 자체는 그대로 두고
     // "빨리 감기"만 하는 것이므로 물리(방정식)는 바뀌지 않는다.
     geodesicTimeScale: 260.0,
+    // ── 고정 시간간격 적분 ──
+    // leapfrog가 "에너지를 발산시키지 않는다"는 심플렉틱 성질은 Δt가 일정할 때만 성립한다.
+    // rAF의 프레임 간격을 그대로 넘기면 그 보장이 깨지고, 측정값도 프레임률에 따라 달라져
+    // 재현이 안 된다. 그래서 누적 시간을 이 고정 간격으로 쪼개 밟는다.
+    physicsTimeStep: 1 / 120,
+    // 한 프레임에 밟을 수 있는 최대 스텝 수. 넘으면 밀린 시간을 버린다 —
+    // 느려질지언정 따라잡으려다 폭발하지 않는다(death spiral 방지).
+    maxPhysicsStepsPerFrame: 8,
+    // 누적 전에 프레임 시간 자체를 자른다. 탭을 전환했다 돌아오면 수 초가 한 번에 들어오는데,
+    // geodesicTimeScale이 곱해지면 한 스텝의 dτ가 평소의 수십 배가 되어 궤도가 그 자리에서 터진다.
+    maxFrameTime: 0.25,
     // ── 관찰자(1인칭) 모드 ──
     // 중력에 이끌려 우물로 '떨어지는' 것이 주가 되고, 키 조작은 그 위에 얹는 미세 조정이다.
     // 추진력이 중력만큼 세면 자유낙하가 조작에 묻혀 체험이 사라진다.
@@ -728,13 +739,28 @@ bloomPass.radius = CONFIG.bloomRadius;
 composer.addPass(bloomPass);
 
 const clock = new THREE.Clock();
+// 렌더링은 프레임마다, 물리는 고정 간격으로 — 둘을 분리한다(누적자 방식).
+// 프레임 간격을 그대로 적분에 넘기면 (1) leapfrog의 심플렉틱 성질이 깨지고 (2) 탭 전환 후
+// 몰아 들어온 시간에 geodesicTimeScale이 곱해져 궤도가 한 프레임에 터진다. 자세한 이유는 CONFIG 참고.
+let physicsAccumulator = 0;
 function animate() {
-    const deltaTime = clock.getDelta(); 
-    const time = clock.getElapsedTime();
-    shaderMat.uniforms.uTime.value = time;
+    const frameTime = clock.getDelta();
+    shaderMat.uniforms.uTime.value = clock.getElapsedTime();
     if(state.viewMode === 'GOD') orbitControls.update();
-    updateUserSimulation(deltaTime);
-    if(state.masses.length > 0) { updateMassPhysics(deltaTime); updateShaderData(); }
+
+    physicsAccumulator += Math.min(frameTime, CONFIG.maxFrameTime);
+    let steps = 0;
+    while(physicsAccumulator >= CONFIG.physicsTimeStep && steps < CONFIG.maxPhysicsStepsPerFrame) {
+        updateUserSimulation(CONFIG.physicsTimeStep);
+        if(state.masses.length > 0) updateMassPhysics(CONFIG.physicsTimeStep);
+        physicsAccumulator -= CONFIG.physicsTimeStep;
+        steps++;
+    }
+    // 상한까지 밟고도 남았다면 그 프레임은 이미 밀린 것이다. 빚을 지고 다음 프레임에
+    // 몰아서 갚으려 하면 점점 더 밀리므로(death spiral), 남은 시간은 버린다.
+    if(steps === CONFIG.maxPhysicsStepsPerFrame) physicsAccumulator = 0;
+
+    if(state.masses.length > 0) updateShaderData();
     composer.render(); requestAnimationFrame(animate);
 }
 animate();
