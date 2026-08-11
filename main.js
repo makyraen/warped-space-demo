@@ -11,9 +11,11 @@ import { gsap } from "https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js";
 const CONFIG = {
     planeSize: 1000,
     maxMassCount: 5,
-    // 상한을 낮게 잡는 이유: 반지름이 질량에 비례하므로 큰 질량은 구가 화면을 지배하고,
-    // 곡면 깊이는 최대 5개까지 선형 중첩되어 격자가 과도하게 늘어난다.
     // 100 → 반지름 25, M=5, 단일 질량 우물 깊이 약 139.
+    // 원래 이 상한을 200에서 100으로 낮춘 이유는 "우물이 깊어지면 격자가 사라진다"였는데,
+    // 진짜 원인은 프래그먼트 셰이더의 깊이 포화였고 그건 depthColorScale로 고쳤다(아래).
+    // 지금 이 값은 버그 회피가 아니라 취향 — 큰 질량은 구가 화면을 지배하고 깊이가 최대
+    // 5개까지 중첩된다는 이유만 남는다. 되올려도 곡면 형태는 읽힌다.
     maxMassValue: 100,
     minMassValue: 20,
     // 질량 ↔ 화면상 구 반지름 변환 상수. 아래 massToScale()/scaleToMass()로만 쓸 것.
@@ -24,7 +26,13 @@ const CONFIG = {
     scalePerMass: 0.2,       // 질량 1당 반지름 증가분
     chargeRatePerSec: 50.0,  // 누르고 있는 동안 초당 늘어나는 질량
     gridScale: 100.0,
-    gravityK: 100.0, 
+    // 격자 색·광량이 깊이에 반응하는 특성 길이. 깊이 d는 1-exp(-|d|/이 값)으로 매핑되므로
+    // 포화가 없다. 두 모델의 깊이 범위(우물 바닥 ~125~139, 격자 가장자리 ~24~29)를 모두
+    // 담도록 잡았다. 낮추면 얕은 우물도 진하게, 높이면 깊은 우물만 진하게 보인다.
+    depthColorScale: 70.0,
+    // 후처리 블룸. threshold를 낮게 두면 격자선까지 번져 곡면 형태가 흰색으로 뭉개진다.
+    bloomThreshold: 0.55, bloomStrength: 0.9, bloomRadius: 0.5,
+    gravityK: 100.0,
     epsilon: 80.0, 
     userMass: 20,
     userHeightOffset: 15,
@@ -317,7 +325,7 @@ scene.add(keyLight);
 const planeGeo = new THREE.PlaneGeometry(CONFIG.planeSize, CONFIG.planeSize, 200, 200);
 const shaderMat = new THREE.ShaderMaterial({
     vertexShader: vertShader, fragmentShader: fragShader, side: THREE.DoubleSide, transparent: true,
-    uniforms: { uTime: { value: 0 }, uMassCount: { value: 0 }, uMassPositions: { value: Array.from({ length: 5 }, () => new THREE.Vector3()) }, uMassValues: { value: new Float32Array(5) }, uK: { value: CONFIG.gravityK }, uEpsilon: { value: CONFIG.epsilon }, uGridColor: { value: new THREE.Color(0x0088ff) }, uBaseColor: { value: new THREE.Color(0x02020a) }, uGridScale: { value: CONFIG.gridScale }, uMode: { value: 0 }, uR0: { value: CONFIG.embedR0 }, uMassToM: { value: CONFIG.massToM }, }
+    uniforms: { uTime: { value: 0 }, uMassCount: { value: 0 }, uMassPositions: { value: Array.from({ length: 5 }, () => new THREE.Vector3()) }, uMassValues: { value: new Float32Array(5) }, uK: { value: CONFIG.gravityK }, uEpsilon: { value: CONFIG.epsilon }, uGridColor: { value: new THREE.Color(0x0088ff) }, uBaseColor: { value: new THREE.Color(0x02020a) }, uGridScale: { value: CONFIG.gridScale }, uMode: { value: 0 }, uR0: { value: CONFIG.embedR0 }, uMassToM: { value: CONFIG.massToM }, uDepthScale: { value: CONFIG.depthColorScale }, }
 });
 const plane = new THREE.Mesh(planeGeo, shaderMat); plane.rotation.x = -Math.PI / 2; scene.add(plane);
 const massGeometry = new THREE.SphereGeometry(1, 64, 64); const dragPlane = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), new THREE.MeshBasicMaterial({ visible: false })); dragPlane.rotation.x = -Math.PI / 2; scene.add(dragPlane);
@@ -715,9 +723,9 @@ window.addEventListener("pointerup", (e) => {
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-bloomPass.threshold = 0.3; 
-bloomPass.strength = 1.2; 
-bloomPass.radius = 0.5;
+bloomPass.threshold = CONFIG.bloomThreshold;
+bloomPass.strength = CONFIG.bloomStrength;
+bloomPass.radius = CONFIG.bloomRadius;
 composer.addPass(bloomPass);
 
 const clock = new THREE.Clock();

@@ -145,22 +145,33 @@
     <script id="fragmentShader" type="x-shader/x-fragment">
         varying float vHeight; varying vec2 vUv; varying vec3 vWorldPosition;
         uniform vec3 uGridColor; uniform vec3 uBaseColor; uniform float uGridScale;
+        uniform float uDepthScale;   // 깊이 → 색/광량 매핑의 특성 길이
         void main() {
-        vec2 gridUV = vUv * uGridScale; 
-        vec2 grid = abs(fract(gridUV - 0.5) - 0.5) / fwidth(gridUV);
+        vec2 gridUV = vUv * uGridScale;
+        vec2 dudv = fwidth(gridUV);
+        vec2 grid = abs(fract(gridUV - 0.5) - 0.5) / dudv;
         float line = min(grid.x, grid.y);
         float gridIntensity = 1.0 - min(line, 1.0);
 
-        float depth = clamp(abs(vHeight) * 0.05, 0.0, 1.0); 
-        
-        vec3 targetColor = vec3(1.0, 0.5, 0.1); 
-        
-        vec3 depthColor = mix(uGridColor, targetColor, depth * 0.5); 
+        // 한 픽셀 안에 격자 칸이 여럿 들어가기 시작하면(가파른 우물 벽, 먼 거리) 선끼리 뭉쳐
+        // 면이 통짜로 칠해지면서 오히려 격자가 사라진다. 그런 구역은 격자를 걷어낸다.
+        float cellsPerPixel = max(dudv.x, dudv.y);
+        gridIntensity *= 1.0 - smoothstep(0.6, 1.6, cellsPerPixel);
+
+        // 깊이는 포화 없이 1에 점근한다. 예전에는 abs(vHeight)*0.05를 clamp했는데, 이는
+        // |vHeight| > 20을 전부 1로 뭉갠다. Flamm 우물은 화면 대부분에서 그 값을 넘으므로
+        // (M=5면 r=340에서도 이미 23.7) 깊이 정보가 통째로 사라지고 판 전체가 최대 광량으로
+        // 발광했다. 질량 상한을 낮추면 나아 보였던 것은 이 포화점을 피했기 때문일 뿐이다.
+        float depth = 1.0 - exp(-abs(vHeight) / uDepthScale);
+
+        vec3 targetColor = vec3(1.0, 0.5, 0.1);
+
+        vec3 depthColor = mix(uGridColor, targetColor, depth);
 
         vec3 finalColor = mix(uBaseColor, depthColor, gridIntensity);
-        
-        float glowFactor = 0.3 + depth * 0.5;
-        finalColor += depthColor * gridIntensity * glowFactor; 
+
+        float glowFactor = 0.25 + depth * 0.35;
+        finalColor += depthColor * gridIntensity * glowFactor;
 
         float dist = length(vWorldPosition.xz);
         float fade = 1.0 - smoothstep(300.0, 500.0, dist); 
