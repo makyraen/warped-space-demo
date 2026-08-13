@@ -1,0 +1,203 @@
+{
+ "env": {
+  "renderer": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1070 (0x00001B81) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "vendor": "Google Inc. (NVIDIA)",
+  "glVersion": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
+  "devicePixelRatio": 1,
+  "canvas": {
+   "w": 1280,
+   "h": 720
+  },
+  "grid": {
+   "width": 1000,
+   "height": 1000,
+   "widthSegments": 200,
+   "heightSegments": 200
+  }
+ },
+ "headless": false,
+ "seconds": 3,
+ "rows": [
+  {
+   "model": "RUBBER",
+   "massCount": 0,
+   "medianFrameMs": 0.2823944988696302,
+   "minFrameMs": 0.28178228990411786,
+   "maxFrameMs": 0.29454652648128127,
+   "spreadMs": 0.012764236577163413,
+   "fps": 3541.1454684946198,
+   "p95FrameMs": 0.5,
+   "rounds": [
+    0.28178228990411786,
+    0.2823944988696302,
+    0.29454652648128127
+   ]
+  },
+  {
+   "model": "RUBBER",
+   "massCount": 1,
+   "medianFrameMs": 0.597188995215311,
+   "minFrameMs": 0.5887534408179315,
+   "maxFrameMs": 0.6465041001294766,
+   "spreadMs": 0.057750659311545105,
+   "fps": 1674.5117676514772,
+   "p95FrameMs": 1,
+   "rounds": [
+    0.5887534408179315,
+    0.597188995215311,
+    0.6465041001294766
+   ]
+  },
+  {
+   "model": "RUBBER",
+   "massCount": 2,
+   "medianFrameMs": 0.6011039743075064,
+   "minFrameMs": 0.5951301928046114,
+   "maxFrameMs": 0.6212404065546567,
+   "spreadMs": 0.026110213750045297,
+   "fps": 1663.6057034093583,
+   "p95FrameMs": 1,
+   "rounds": [
+    0.5951301928046114,
+    0.6011039743075064,
+    0.6212404065546567
+   ]
+  },
+  {
+   "model": "RUBBER",
+   "massCount": 3,
+   "medianFrameMs": 0.6152423993426458,
+   "minFrameMs": 0.5828988326848247,
+   "maxFrameMs": 0.6294006309148301,
+   "spreadMs": 0.04650179823000544,
+   "fps": 1625.3756260434059,
+   "p95FrameMs": 1,
+   "rounds": [
+    0.5828988326848247,
+    0.6152423993426458,
+    0.6294006309148301
+   ]
+  },
+  {
+   "model": "RUBBER",
+   "massCount": 4,
+   "medianFrameMs": 0.6345909283594744,
+   "minFrameMs": 0.5938119793732646,
+   "maxFrameMs": 0.656929497034922,
+   "spreadMs": 0.06311751766165741,
+   "fps": 1575.818303273213,
+   "p95FrameMs": 1,
+   "rounds": [
+    0.5938119793732646,
+    0.6345909283594744,
+    0.656929497034922
+   ]
+  },
+  {
+   "model": "RUBBER",
+   "massCount": 5,
+   "medianFrameMs": 0.6170786979810502,
+   "minFrameMs": 0.5944003177124705,
+   "maxFrameMs": 0.6221415231375816,
+   "spreadMs": 0.02774120542511116,
+   "fps": 1620.5388441892203,
+   "p95FrameMs": 1,
+   "rounds": [
+    0.5944003177124705,
+    0.6170786979810502,
+    0.6221415231375816
+   ]
+  },
+  {
+   "model": "FLAMM",
+   "massCount": 0,
+   "medianFrameMs": 0.2897408625024173,
+   "minFrameMs": 0.2858423109924687,
+   "maxFrameMs": 0.3242375081116168,
+   "spreadMs": 0.03839519711914807,
+   "fps": 3451.359919906558,
+   "p95FrameMs": 0.5,
+   "rounds": [
+    0.2858423109924687,
+    0.2897408625024173,
+    0.3242375081116168
+   ]
+  },
+  {
+   "model": "FLAMM",
+   "massCount": 1,
+   "medianFrameMs": 0.6150462487153099,
+   "minFrameMs": 0.601807955002008,
+   "maxFrameMs": 0.6252086811352254,
+   "spreadMs": 0.02340072613321742,
+   "fps": 1625.893991043389,
+   "p95FrameMs": 1,
+   "rounds": [
+    0.601807955002008,
+    0.6150462487153099,
+    0.6252086811352254
+   ]
+  },
+  {
+   "model": "FLAMM",
+   "massCount": 2,
+   "medianFrameMs": 0.6195323815435572,
+   "minFrameMs": 0.609873778501628,
+   "maxFrameMs": 0.6197518097207859,
+   "spreadMs": 0.009878031219157868,
+   "fps": 1614.1206332242273,
+   "p95FrameMs": 1,
+   "rounds": [
+    0.609873778501628,
+    0.6195323815435572,
+    0.6197518097207859
+   ]
+  },
+  {
+   "model": "FLAMM",
+   "massCount": 3,
+   "medianFrameMs": 0.6187035507844756,
+   "minFrameMs": 0.6154367934224046,
+   "maxFrameMs": 0.668168637073387,
+   "spreadMs": 0.05273184365098238,
+   "fps": 1616.282949616283,
+   "p95FrameMs": 1,
+   "rounds": [
+    0.6154367934224046,
+    0.6187035507844756,
+    0.668168637073387
+   ]
+  },
+  {
+   "model": "FLAMM",
+   "massCount": 4,
+   "medianFrameMs": 0.6352067868504772,
+   "minFrameMs": 0.6272212908633709,
+   "maxFrameMs": 0.6649866785079925,
+   "spreadMs": 0.03776538764462167,
+   "fps": 1574.2904841402337,
+   "p95FrameMs": 1,
+   "rounds": [
+    0.6272212908633709,
+    0.6352067868504772,
+    0.6649866785079925
+   ]
+  },
+  {
+   "model": "FLAMM",
+   "massCount": 5,
+   "medianFrameMs": 0.6147547711881807,
+   "minFrameMs": 0.6147022587269005,
+   "maxFrameMs": 0.6347955075227784,
+   "spreadMs": 0.020093248795877816,
+   "fps": 1626.6648863370808,
+   "p95FrameMs": 1,
+   "rounds": [
+    0.6147022587269005,
+    0.6147547711881807,
+    0.6347955075227784
+   ]
+  }
+ ]
+}

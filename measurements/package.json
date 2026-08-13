@@ -1,0 +1,7 @@
+{
+  "name": "warped-space-measurements",
+  "private": true,
+  "type": "module",
+  "description": "논문 §IV 수치를 재현 가능하게 뽑는 측정 하네스",
+  "devDependencies": { "playwright": "^1.62.1" }
+}
