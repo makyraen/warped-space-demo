@@ -127,7 +127,7 @@ await setModel('FLAMM');
 await hideUI(false);
 await spawn([{ x: 0, z: 0, m: 180 }, { x: 190, z: 0, m: 60 }]);
 await camera(...CAM_A);
-await shot('fig4_ui_flamm.png');
+await shot('fig3_ui_flamm.png');
 
 if (errs.length) console.log('\npageerrors:', JSON.stringify(errs));
 await browser.close();

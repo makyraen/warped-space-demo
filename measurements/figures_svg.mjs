@@ -165,13 +165,13 @@ ${g}
 </svg>`;
 }
 
-writeFileSync(OUT + 'fig3_orbit_gr_vs_newton.svg', buildFig3(orbits));
-console.log('  → fig3_orbit_gr_vs_newton.svg');
+writeFileSync(OUT + 'fig5_orbit_gr_vs_newton.svg', buildFig3(orbits));
+console.log('  → fig5_orbit_gr_vs_newton.svg');
 console.log(`     (M=${orbits.M}, r_peri=${orbits.rPeri}, L=${orbits.L.toFixed(3)}, GR 4주기 / 뉴턴 1주기)`);
 
 // Word/HWP에 바로 끼워 넣을 수 있도록 PNG 판도 함께 만든다(SVG를 못 받는 편집기가 많다).
 const b2 = await chromium.launch();
-for (const [name, w, h] of [['fig1_architecture', 900, 620], ['fig3_orbit_gr_vs_newton', 780, 780]]) {
+for (const [name, w, h] of [['fig1_architecture', 900, 620], ['fig5_orbit_gr_vs_newton', 780, 780]]) {
     const pg = await b2.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 2 });
     await pg.setContent(`<body style="margin:0">${readFileSync(OUT + name + '.svg', 'utf8')}</body>`);
     await pg.waitForTimeout(250);

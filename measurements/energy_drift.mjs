@@ -95,7 +95,12 @@ const result = await page.evaluate(() => {
             if (rel > maxRel) maxRel = rel;
             if (r < rMin) rMin = r;
             if (r > rMax) rMax = r;
-            if (i % 200 === 0) series.push({ t: +t.toFixed(3), rel: +rel.toFixed(8), r: +r.toFixed(2) });
+            // rel은 유효숫자로 남긴다. 예전에는 toFixed(8)로 소수점 8자리에 맞춰 반올림했는데,
+            // leapfrog의 rel이 10⁻⁶~10⁻⁸ 대라 양자화가 신호에 비해 컸다 — 아래 기울기가 이
+            // 시계열에서 계산되므로 반올림이 곧 결과에 섞였고, 로그 축에 올리면 값이 0으로
+            // 뭉개진 지점이 바닥에 닿는 것처럼 보였다. 표본 간격도 200 → 50스텝으로 좁혀
+            // 궤도당 표본이 진동을 제대로 담게 했다(궤도당 약 6점 → 약 24점).
+            if (i % 50 === 0) series.push({ t: +t.toFixed(3), rel: +rel.toPrecision(6), r: +r.toFixed(2) });
         }
         // 세속 표류(추세) 추정: rel 시계열의 최소제곱 기울기
         const n = series.length;
