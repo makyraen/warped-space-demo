@@ -82,7 +82,22 @@ const CONFIG = {
     // 도착 판정: 질량에 이만큼 다가가면 자유낙하가 끝나고 조작권이 넘어온다.
     // 도착 전에는 중력이 주역이라 우물에서 빠져나올 수 없다(= 구에 묶인다).
     observerArrivalPad: 45.0,
-    observerFreeThrust: 110.0    // 도착 후에는 중력이 꺼지므로 추진력만으로 움직인다
+    observerFreeThrust: 110.0,   // 도착 후에는 중력이 꺼지므로 추진력만으로 움직인다
+    // ── 숫자 키(1~5) 프리셋 배치 ──
+    // 질량을 하나씩 드래그로 놓는 대신 여러 개를 한 번에 세우기 위한 것. 위치·질량·속도·이심률을
+    // 전부 고정해 **누가 몇 번을 눌러도 같은 장면**이 나오게 한다. 이 앱이 파는 것이 두 모델의
+    // 대조인데, 배치가 매번 달라지면 대조 결과를 남에게 보여줄 수도 재현할 수도 없다.
+    // (일반 스폰은 지금까지대로 무작위로 남겨 둔다 — 프리셋만 결정론적이다.)
+    presetRadius: 200.0,   // 위성이 놓이는 반경. massLimit(340) 안쪽이고 3M보다 한참 밖이다.
+    presetMass: 100.0,     // 중심·위성 공통. M = massToM·100 = 5 → 3M=15 ≪ 200이라 안정된 궤도
+    presetEcc: 1.12,       // geodesicEccMin~Max(1.02~1.25)의 중간값을 고정으로 씀
+    // RUBBER 모드 초기 접선속도를 원궤도 속도의 몇 배로 잡을지. 1이면 근사 원궤도.
+    // 일반 스폰의 무작위 속도(10~30)를 그대로 쓰면 안 된다 — r=200에서 원궤도 속도는 약 66이라
+    // 한참 sub-circular가 되어 위성이 몇 초 만에 중심으로 곤두박질친다(§5-A-1의 그 현상).
+    // 프리셋은 "궤도를 보여주는" 것이 목적이므로 원궤도 근처에서 출발시킨다.
+    presetSpeedFactor: 0.95,
+    // R 키로 켜는 무작위 배치의 반경 범위. 일반 스폰과 같은 성격의 산포를 준다.
+    randomRadiusMin: 90.0, randomRadiusMax: 300.0
 };
 // 질량 ↔ 구 반지름은 반드시 이 한 쌍을 통해서만 오간다(서로의 역함수).
 const massToScale = (mass) => CONFIG.scaleBase + mass * CONFIG.scalePerMass;
@@ -91,6 +106,7 @@ const scaleToMass = (scale) => (scale - CONFIG.scaleBase) / CONFIG.scalePerMass;
 const STAR_COLORS = [0x9bb0ff, 0xaabfff, 0xcad7ff, 0xf8f7ff, 0xfff4ea, 0xffd2a1, 0xffcc6f];
 const state = {
     viewMode: 'GOD', model: 'RUBBER', isSpawning: false, isCharging: false, chargeStartTime: 0, masses: [], spawnsInFlight: 0,
+    randomPlacement: false,   // R 키. false = 고정 프리셋(재현 가능), true = 무작위 배치
     // phase: FALLING(중력이 우물로 끌어당김) → ARRIVED(중력 off, WASD 자유 조작)
     // freeFlight: ARRIVED에서 Space로 전환. false=격자면을 타고 이동, true=y=0 평면 자유비행
     fps: { yaw: 0, pitch: 0, isDragging: false, phase: 'FALLING', freeFlight: false },
@@ -178,6 +194,10 @@ window.addEventListener('keydown', (e) => {
     if(e.code === 'KeyM') { if(state.isSpawning) endSpawnMode(); else startSpawnMode(); }
     // C: 'Model' 버튼과 동일 — 고무판 ↔ Flamm 토글 (Change model. M은 Add Mass가 이미 씀)
     if(e.code === 'KeyC') { toggleModel(); }
+    // R: 배치 방식 토글(고정 프리셋 ↔ 무작위)
+    if(e.code === 'KeyR') { togglePlacementMode(); }
+    // 1~5: 그 개수만큼 한 번에 추가. 상한(5)을 넘는 만큼은 잘린다.
+    if(/^Digit[1-5]$/.test(e.code)) { spawnPreset(Number(e.code.slice(5))); }
     if(keyState.hasOwnProperty(e.code)) keyState[e.code] = true;
 });
 window.addEventListener('keyup', (e) => { if(keyState.hasOwnProperty(e.code)) keyState[e.code] = false; });
@@ -466,7 +486,10 @@ function initGeodesic(obj, center, M) {
     const phi = Math.atan2(dz, dx);
     const rSafe = Math.max(r, CONFIG.geodesicMinRFactor * M); // L_circ 공식은 r>3M 필요
     const Lcirc = Math.sqrt(M * rSafe*rSafe / (rSafe - 3*M));
-    const ecc = CONFIG.geodesicEccMin + Math.random() * (CONFIG.geodesicEccMax - CONFIG.geodesicEccMin);
+    // 프리셋으로 놓인 질량은 이심률까지 고정돼 있다(재현성). 그 외에는 지금까지대로 무작위.
+    const ecc = (obj.presetEcc !== undefined)
+        ? obj.presetEcc
+        : CONFIG.geodesicEccMin + Math.random() * (CONFIG.geodesicEccMax - CONFIG.geodesicEccMin);
     obj.geo = { r, phi, vr: 0, L: Lcirc * ecc };
 }
 
@@ -508,7 +531,13 @@ function updateGeodesicPhysics(deltaTime) {
     });
 }
 
-function createMass(pos, scale, mass) {
+// opts로 무작위 요소를 고정할 수 있다(숫자 키 프리셋 전용). 넘기지 않으면 지금까지와 완전히 동일하게
+// 동작한다 — 드래그 스폰의 거동은 바꾸지 않는다.
+//   opts.ecc       : FLAMM 진입 시 L_circ에 곱할 이심률 계수. 생략 시 initGeodesic이 무작위로 뽑는다
+//   opts.onSettled : growth가 끝나 settling이 풀린 직후 호출. RUBBER 속도는 반드시 여기서 넣어야 한다 —
+//                    settling 동안 updateNewtonianPhysics가 매 프레임 속도를 0으로 되돌리기 때문에
+//                    생성 시점에 준 초기 속도는 그대로 버려진다.
+function createMass(pos, scale, mass, opts = {}) {
     const randomColor = STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)];
     const material = new THREE.MeshStandardMaterial({
         color: randomColor, 
@@ -538,7 +567,8 @@ function createMass(pos, scale, mass) {
     // 공이 바닥으로 순간이동했다("팍 닿는" 느낌). settling 동안은 N-body 적분을 멈춰 둔다.
     const obj = {
         mesh: mesh, mass: mass, velocity: initialVelocity,
-        growth: 0, settling: true
+        growth: 0, settling: true,
+        presetEcc: opts.ecc   // undefined면 initGeodesic이 지금까지대로 무작위로 뽑는다
     };
     state.masses.push(obj);
     updateShaderData();
@@ -549,7 +579,10 @@ function createMass(pos, scale, mass) {
     gsap.to(mesh.scale, { x: scale, y: scale, z: scale, duration: 0.45, ease: "back.out(1.7)" });
     gsap.to(obj, {
         growth: 1, duration: 1.4, ease: "power2.inOut",
-        onComplete: () => { obj.settling = false; updateShaderData(); }
+        onComplete: () => {
+            obj.settling = false; updateShaderData();
+            if(opts.onSettled) opts.onSettled(obj);
+        }
     });
 }
 
@@ -633,6 +666,87 @@ function startSpawnMode() {
 }
 btnAdd.addEventListener("click", startSpawnMode);
 
+// ── 숫자 키(1~5) 일괄 배치 ──
+// 슬롯 방식이다: 위치를 "몇 개를 놓는가"가 아니라 "몇 번째 질량인가"로만 정한다. 그래서
+// 1을 누른 뒤 4를 눌러도 처음부터 5를 누른 것과 같은 장면이 된다(순서 무관·재현 가능).
+// 0번 슬롯은 원점 — FLAMM에서 M을 정하는 것이 masses[0]이고 중심별은 강제 고정이므로,
+// 중심이 원점 밖에 앉으면 우물 전체가 편심된 곳에 생긴다.
+function presetSlotPosition(slot) {
+    if(slot === 0) return { x: 0, z: 0 };
+    const satellites = CONFIG.maxMassCount - 1;
+    const angle = ((slot - 1) / satellites) * Math.PI * 2;
+    return { x: CONFIG.presetRadius * Math.cos(angle), z: CONFIG.presetRadius * Math.sin(angle) };
+}
+
+// RUBBER 모드에서 프리셋 위성들을 근사 원궤도 속도로 맞춘다.
+// 힘 공식을 여기서 다시 쓰지 않고 앱의 computeAcceleration()을 그대로 부른다 — 2체 공식으로
+// 어림하면 틀린다. 위성들이 서로도 당기기 때문이다(4개 고리에서는 필요한 속도가 2체 값의
+// 1.5배까지 커진다). 실제 합력의 반경 성분에서 v = √(a_r·r)로 되짚는 것이 유일하게 맞는 방법이다.
+// growth를 잠시 1로 두는 이유: 방금 놓인 질량은 growth가 0이라 힘에 아직 잡히지 않는데,
+// 우리가 원하는 것은 성장이 끝난 뒤의 정상 상태 속도다.
+function circularizePreset() {
+    if(state.masses.length < 2) return;
+    const center = state.masses[0].mesh.position;
+    const saved = state.masses.map(m => m.growth);
+    state.masses.forEach(m => { m.growth = 1; });
+
+    const plan = state.masses.map((m, i) => {
+        if(i === 0) return null;
+        const dx = m.mesh.position.x - center.x, dz = m.mesh.position.z - center.z;
+        const r = Math.hypot(dx, dz);
+        if(r < 1) return null;
+        const nx = dx / r, nz = dz / r;
+        const { ax, az } = computeAcceleration(i);
+        const aRadial = -(ax * nx + az * nz);     // 중심을 향하는 성분(양수여야 궤도가 성립)
+        if(aRadial <= 0) return null;
+        return { nx, nz, speed: CONFIG.presetSpeedFactor * Math.sqrt(aRadial * r) };
+    });
+
+    state.masses.forEach((m, i) => { m.growth = saved[i]; });
+    state.masses.forEach((m, i) => {
+        const p = plan[i];
+        if(!p) return;
+        m.velocity.set(-p.nz * p.speed, 0, p.nx * p.speed);   // 반경에 수직인 접선 방향
+    });
+}
+
+function randomPosition() {
+    const angle = Math.random() * Math.PI * 2;
+    const r = CONFIG.randomRadiusMin + Math.random() * (CONFIG.randomRadiusMax - CONFIG.randomRadiusMin);
+    return { x: r * Math.cos(angle), z: r * Math.sin(angle) };
+}
+
+// n개를 한 번에 추가한다. 상한을 넘기면 넘는 만큼만 잘라서 놓는다(요청을 통째로 거부하지 않는다).
+// 상한의 정체는 셰이더의 uniform 배열 크기(uMassPositions[5])다 — 늘리려면 GLSL 쪽도 함께 고쳐야 한다.
+function spawnPreset(n) {
+    const room = CONFIG.maxMassCount - (state.masses.length + state.spawnsInFlight);
+    const count = Math.min(n, room);
+    if(count <= 0) return;
+    if(state.isSpawning) endSpawnMode();   // 드래그 스폰 중이었다면 정리하고 시작
+    for(let k = 0; k < count; k++) {
+        const slot = state.masses.length;   // 이번에 놓일 질량의 슬롯 번호
+        const pos = state.randomPlacement ? randomPosition() : presetSlotPosition(slot);
+        const mass = CONFIG.presetMass;
+        // 무작위 모드에서는 속도·이심률도 넘기지 않아 일반 스폰과 같은 산포를 갖는다.
+        // 무작위 모드에서는 이심률·속도를 넘기지 않아 일반 스폰과 같은 산포를 갖는다.
+        // 고정 모드에서는 마지막 질량의 settling이 풀린 뒤에 한 번만 원궤도를 맞춘다 —
+        // 위성이 서로도 당기므로 구성이 다 갖춰져야 속도가 정해지고, settling 중에는
+        // 어차피 속도가 매 프레임 0으로 되돌려진다.
+        const opts = state.randomPlacement ? {} : {
+            ecc: CONFIG.presetEcc,
+            onSettled: () => { if(!state.masses.some(m => m.settling)) circularizePreset(); }
+        };
+        createMass(pos, massToScale(mass), mass, opts);
+    }
+}
+
+// R: 배치 방식 토글. 고정 프리셋 ↔ 무작위
+const placementModeEl = document.getElementById("placement-mode");
+function togglePlacementMode() {
+    state.randomPlacement = !state.randomPlacement;
+    if(placementModeEl) placementModeEl.innerText = state.randomPlacement ? "Random" : "Fixed";
+}
+
 // 스폰 모드를 안전하게 종료(성공/취소 공통). 고착 상태 복구용.
 function endSpawnMode() {
     state.isSpawning = false;
@@ -648,15 +762,33 @@ window.addEventListener("keydown", (e) => { if(e.code === "Escape" && state.isSp
 const contextMenu = document.getElementById("context-menu"); 
 const btnDelete = document.getElementById("btn-delete-mass"); let selectedMassForDelete = null;
 
+// 중심 질량(masses[0])은 삭제 대상이 아니다. FLAMM에서는 이 질량이 배경 기하 자체를 정의하고
+// (M = mass·massToM), RUBBER에서도 강제 고정된 기준점이다(isIntegrated). 지우면 masses[1]이
+// 승계되면서 ① 돌던 질량이 그 자리에 얼어붙고 ② FLAMM에서는 남은 궤도의 geo가 옛 중심 기준이라
+// 새 중심과의 거리만큼 통째로 순간이동하며 ③ L이 옛 M으로 합성된 값이라 궤도 성격까지 조용히
+// 바뀐다. 승계시키거나 전부 지우는 대신 막고 이유를 보여준다 — 사용자가 지우라고 하지 않은
+// 것까지 바뀌지 않아야 하고, 장면을 비우는 일은 Reset All이 이미 맡고 있다.
+const isCenterMass = (mesh) => state.masses.length > 0 && state.masses[0].mesh === mesh;
+const DELETE_LABEL = "🗑️ Delete Mass";
+const CENTER_LABEL = "🔒 중심 질량 — 삭제 불가<br><small>기하를 정의합니다 · 비우려면 Reset All</small>";
+
 window.addEventListener("contextmenu", (e) => {
     e.preventDefault(); if(e.target.closest("#ui-layer")) return;
     pointer.x = (e.clientX / window.innerWidth) * 2 - 1; pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    raycaster.setFromCamera(pointer, camera); 
+    raycaster.setFromCamera(pointer, camera);
     const hits = raycaster.intersectObjects(state.masses.map(m => m.mesh));
-    if(hits.length > 0) { selectedMassForDelete = hits[0].object; contextMenu.style.display = "block"; contextMenu.style.left = e.clientX + "px"; contextMenu.style.top = e.clientY + "px"; } else { contextMenu.style.display = "none"; }
+    if(hits.length > 0) {
+        selectedMassForDelete = hits[0].object;
+        const locked = isCenterMass(selectedMassForDelete);
+        btnDelete.classList.toggle("locked", locked);
+        btnDelete.innerHTML = locked ? CENTER_LABEL : DELETE_LABEL;
+        contextMenu.style.display = "block"; contextMenu.style.left = e.clientX + "px"; contextMenu.style.top = e.clientY + "px";
+    } else { contextMenu.style.display = "none"; }
 });
 window.addEventListener("click", (e) => { if(!e.target.closest("#context-menu")) contextMenu.style.display = "none"; });
 btnDelete.addEventListener("click", () => {
+    // 라벨만 바꿔 두면 클릭 자체는 들어오므로 여기서도 막는다(메뉴가 떠 있는 사이 배열이 바뀔 수도 있다).
+    if(selectedMassForDelete && isCenterMass(selectedMassForDelete)) { contextMenu.style.display = "none"; return; }
     if(selectedMassForDelete) {
         const index = state.masses.findIndex(m => m.mesh === selectedMassForDelete);
         if(index > -1) {
