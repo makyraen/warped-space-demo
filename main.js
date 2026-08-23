@@ -905,7 +905,10 @@ animate();
 // measurements/ 의 스크립트가 이 훅으로 적분기와 에너지를 직접 구동한다 — 논문 §IV의
 // 수치를 손으로 코드를 고쳐가며 뽑지 않고 재현 가능하게 만들기 위한 것이다.
 if(new URLSearchParams(location.search).has('debug')) {
-    window.__warped = { state, CONFIG, computeAcceleration, geodesicRadialAccel, createMass, massToScale, scaleToMass, camera, scene, shaderMat };
+    // updateMassPhysics·initGeodesic까지 연 이유: §4.5(두 모드 궤적 대조)가 rAF에 의존하지 않고
+    // 앱의 실제 스텝 함수를 고정 간격으로 동기 구동해야 재현이 된다. 측정이 물리를 다시 구현하면
+    // 통제가 성립하지 않는다 — 이 훅은 ?debug일 때만 열린다.
+    window.__warped = { state, CONFIG, computeAcceleration, geodesicRadialAccel, createMass, massToScale, scaleToMass, camera, scene, shaderMat, updateMassPhysics, initGeodesic };
 }
 window.addEventListener("resize", () => {
     renderer.setSize(window.innerWidth, window.innerHeight); 
