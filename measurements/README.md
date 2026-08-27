@@ -13,7 +13,7 @@ npx playwright install chromium    # 최초 1회
 앱을 띄워 둔다(저장소 루트에서):
 
 ```bash
-python -m http.server 8777
+python3 -m http.server 8777
 ```
 
 ## 실행
