@@ -53,9 +53,10 @@ const CONFIG = {
     // gravityK·physicsSpeedScale로 100배 증폭된 힘에 맞춘 값이라 실제 M에는 탈출속도를 훨씬
     // 웃돈다 — 그대로 재사용하면 궤도가 아니라 직선으로 날아간다. 그래서 FLAMM으로 들어가는
     // 순간(생성 또는 모델 토글) 그 반경에서의 원궤도 각운동량(L_circ)을 다시 계산해 쓴다.
-    geodesicEccMin: 1.02, geodesicEccMax: 1.25,  // L_circ에 곱하는 이심률 계수 → 세차가 보이는 타원궤도
+    geodesicLScaleMin: 1.02, geodesicLScaleMax: 1.25,  // L_circ에 곱하는 각운동량 배율 → 세차가 보이는 구속 이심 궤도
     geodesicMinRFactor: 3.5,  // L_circ 공식(r>3M 필요)의 분모 안전 하한, ×M
-    geodesicHorizonPad: 2.5,  // 이 반경(×M) 안쪽은 사건지평선 근접 특이점 방지용 정지 클램프(포획/병합 미구현)
+    geodesicHorizonPad: 2.5,  // 이 반경(×M) 안쪽은 정지 클램프. 방사 방정식 자체는 r=2M에서 발산하지
+    // 않지만, 포획·사건지평선 통과와 Flamm 정의역(r<2M) 밖의 표시를 구현하지 않아 두는 정책적 경계다.
     // dτ(고유시간)를 실제 프레임 시간보다 빨리 재생하는 배율. G=M=1 단위에서 진짜 궤도 주기는
     // 화면 스케일(r~100~300)에서 수십 분이 걸려 보이지 않는다 — 궤적 자체는 그대로 두고
     // "빨리 감기"만 하는 것이므로 물리(방정식)는 바뀌지 않는다.
@@ -72,15 +73,16 @@ const CONFIG = {
     // geodesicTimeScale이 곱해지면 한 스텝의 dτ가 평소의 수십 배가 되어 궤도가 그 자리에서 터진다.
     maxFrameTime: 0.25,
     // ── 관찰자(1인칭) 모드 ──
-    // 중력에 이끌려 우물로 '떨어지는' 것이 주가 되고, 키 조작은 그 위에 얹는 미세 조정이다.
-    // 추진력이 중력만큼 세면 자유낙하가 조작에 묻혀 체험이 사라진다.
+    // 중력꼴 힘으로 우물 쪽으로 당겨지는 연출이 주가 되고, 키 조작은 그 위에 얹는 미세 조정이다.
+    // 물리 시뮬레이션이 아니라 뉴턴식 이동 규칙이다(§5 한계 3). 추진력이 이 힘만큼 세면
+    // 당김 연출이 조작에 묻혀 체험이 사라진다.
     observerThrust: 55.0,
     observerGravityScale: 0.4,   // 우물 근처에서 중력이 폭발해 화면이 튀는 것을 완화
     observerFriction: 1.1,
     observerHeightSmooth: 6.0,   // 카메라 높이 추종 속도(1/s). 가파른 벽에서 화면이 곤두박질치지 않게
     observerLimit: 460.0,
-    // 도착 판정: 질량에 이만큼 다가가면 자유낙하가 끝나고 조작권이 넘어온다.
-    // 도착 전에는 중력이 주역이라 우물에서 빠져나올 수 없다(= 구에 묶인다).
+    // 도착 판정: 질량에 이만큼 다가가면 당김 연출이 끝나고 조작권이 넘어온다.
+    // 도착 전에는 당기는 힘이 주역이라 우물에서 빠져나올 수 없다(= 구에 묶인다).
     observerArrivalPad: 45.0,
     observerFreeThrust: 110.0,   // 도착 후에는 중력이 꺼지므로 추진력만으로 움직인다
     // ── 숫자 키(1~5) 프리셋 배치 ──
@@ -90,7 +92,7 @@ const CONFIG = {
     // (일반 스폰은 지금까지대로 무작위로 남겨 둔다 — 프리셋만 결정론적이다.)
     presetRadius: 200.0,   // 위성이 놓이는 반경. massLimit(340) 안쪽이고 3M보다 한참 밖이다.
     presetMass: 100.0,     // 중심·위성 공통. M = massToM·100 = 5 → 3M=15 ≪ 200이라 안정된 궤도
-    presetEcc: 1.12,       // geodesicEccMin~Max(1.02~1.25)의 중간값을 고정으로 씀
+    presetLScale: 1.12,    // geodesicLScaleMin~Max(1.02~1.25)의 중간값을 고정으로 씀
     // RUBBER 모드 초기 접선속도를 원궤도 속도의 몇 배로 잡을지. 1이면 근사 원궤도.
     // 일반 스폰의 무작위 속도(10~30)를 그대로 쓰면 안 된다 — r=200에서 원궤도 속도는 약 66이라
     // 한참 sub-circular가 되어 위성이 몇 초 만에 중심으로 곤두박질친다(§5-A-1의 그 현상).
@@ -107,9 +109,9 @@ const STAR_COLORS = [0x9bb0ff, 0xaabfff, 0xcad7ff, 0xf8f7ff, 0xfff4ea, 0xffd2a1,
 const state = {
     viewMode: 'GOD', model: 'RUBBER', isSpawning: false, isCharging: false, chargeStartTime: 0, masses: [], spawnsInFlight: 0,
     randomPlacement: false,   // R 키. false = 고정 프리셋(재현 가능), true = 무작위 배치
-    // phase: FALLING(중력이 우물로 끌어당김) → ARRIVED(중력 off, WASD 자유 조작)
+    // phase: APPROACH(당기는 힘이 우물로 끌어당김, 물리 아님) → ARRIVED(그 힘 off, WASD 자유 조작)
     // freeFlight: ARRIVED에서 Space로 전환. false=격자면을 타고 이동, true=y=0 평면 자유비행
-    fps: { yaw: 0, pitch: 0, isDragging: false, phase: 'FALLING', freeFlight: false },
+    fps: { yaw: 0, pitch: 0, isDragging: false, phase: 'APPROACH', freeFlight: false },
     user: { velocity: new THREE.Vector3(), position: new THREE.Vector3(0, 0, 300), smoothY: 0 }
 };
 
@@ -152,7 +154,7 @@ function setFpsView() {
     // 마우스 조작과 싸운다("카메라가 이상하게 도는" 증상). 반드시 죽이고 들어간다.
     gsap.killTweensOf(camera.position);
     state.fps.yaw = 0; state.fps.pitch = 0;
-    state.fps.phase = 'FALLING'; state.fps.freeFlight = false;
+    state.fps.phase = 'APPROACH'; state.fps.freeFlight = false;
     camera.rotation.set(0, 0, 0, 'YXZ');
     state.user.position.set(0, 0, 300);
     state.user.velocity.set(0, 0, 0);
@@ -164,7 +166,7 @@ function setFpsView() {
 }
 setGodView(); 
 
-// 관찰자 HUD: 지금이 자유낙하 중인지, 도착해서 조작권이 넘어왔는지 보여준다.
+// 관찰자 HUD: 지금이 접근(당김) 단계인지, 도착해서 조작권이 넘어왔는지 보여준다.
 function updateObserverHud() {
     const el = document.getElementById("view-mode-text");
     if(state.viewMode !== 'FPS') return;
@@ -232,7 +234,7 @@ function updateUserSimulation(deltaTime) {
     const myPos = state.user.position; 
     const physicsScale = 300.0; 
     
-    // 도착 판정: 질량에 충분히 다가가면 자유낙하가 끝나고 조작권이 넘어온다.
+    // 도착 판정: 질량에 충분히 다가가면 당김 연출이 끝나고 조작권이 넘어온다.
     // 이걸 안 하면 중력이 계속 당겨 우물 바닥에서 빠져나올 수 없다(도착 = 감금).
     if(!arrived) {
         for(const m of state.masses) {
@@ -437,9 +439,10 @@ function updateMassPhysics(deltaTime) {
 }
 
 // 물리 시뮬레이션 업데이트 (leapfrog / kick-drift-kick, 뉴턴 N-body — RUBBER 모드)
-// Euler(스텝 시작 시점의 힘 하나로 스텝 전체를 민다)는 근접 통과 시 오차가 매번 같은 부호로
-// 누적돼 계에 에너지가 주입되고 궤도가 붕괴한다. leapfrog는 스텝의 앞/뒤 힘을 반씩 섞어
-// 심플렉틱(시간 가역적) 적분을 만든다 — 에너지가 정확히 보존되진 않지만 발산 없이 진동만 한다.
+// 이전 구현은 semi-implicit(symplectic) Euler를 썼다. 고정 시간간격에서는 그것도
+// 심플렉틱이라 에너지 오차가 발산하지 않고 유계 범위에서 진동하지만, 1차 정확도라
+// 그 진동 폭 자체가 크다(측정: PAPER_DRAFT.md §4.1, 149배 차이). leapfrog는 스텝의
+// 앞/뒤 힘을 반씩 섞어 2차 정확도를 얻어 같은 시간간격에서 오차 진폭을 크게 줄인다.
 function updateNewtonianPhysics(deltaTime) {
     const halfDt = deltaTime / 2;
 
@@ -466,13 +469,15 @@ function updateNewtonianPhysics(deltaTime) {
 }
 
 // 적도면(θ=π/2) Schwarzschild 측지선 — FLAMM 모드.
-// 궤도 질량(i>0)은 중심 질량(index 0)의 기하만 느끼는 시험 입자로 취급한다. GR은 비선형이라
-// 여러 궤도체가 서로에게도 영향을 주는 엄밀해가 없으므로(§4-2·§8), 서로는 무시한다.
+// 궤도 질량(i>0)은 중심 질량(index 0)이 만드는 배경 기하 위의 시험 입자로 취급하며,
+// 서로는 상호작용하지 않는다(본 구현이 선택한 근사 — §4.5·§5).
 //
 // 보존량 E, L로 얻는 유효 퍼텐셜 V_eff(r) = (1-2M/r)(1+L²/r²)에서
 //   d²r/dτ² = -½ dV_eff/dr = -M/r² + L²/r³ - 3ML²/r⁴          (뉴턴 항 + 원심 항 + GR 보정 항)
 //   dφ/dτ  = L/r²
-// 마지막 항(-3ML²/r⁴)이 뉴턴에 없는 GR의 서명이다 — 근일점 세차, ISCO, 광자구를 만드는 항.
+// 마지막 항(-3ML²/r⁴)이 뉴턴에 없는 GR의 서명이다. 이 항을 포함한 전체 유효 퍼텐셜이
+// 근일점 세차·ISCO 같은 Schwarzschild 궤도의 특성을 만든다. 광자구(r=3M)는 이와 별도로
+// 영측지선(null geodesic)의 유효 퍼텐셜에서 얻어진다.
 function geodesicRadialAccel(r, L, M) {
     const invR = 1 / r;
     return -M * invR*invR + L*L * invR*invR*invR - 3*M*L*L * invR*invR*invR*invR;
@@ -489,11 +494,11 @@ function initGeodesic(obj, center, M) {
     const phi = Math.atan2(dz, dx);
     const rSafe = Math.max(r, CONFIG.geodesicMinRFactor * M); // L_circ 공식은 r>3M 필요
     const Lcirc = Math.sqrt(M * rSafe*rSafe / (rSafe - 3*M));
-    // 프리셋으로 놓인 질량은 이심률까지 고정돼 있다(재현성). 그 외에는 지금까지대로 무작위.
-    const ecc = (obj.presetEcc !== undefined)
-        ? obj.presetEcc
-        : CONFIG.geodesicEccMin + Math.random() * (CONFIG.geodesicEccMax - CONFIG.geodesicEccMin);
-    obj.geo = { r, phi, vr: 0, L: Lcirc * ecc };
+    // 프리셋으로 놓인 질량은 각운동량 배율까지 고정돼 있다(재현성). 그 외에는 지금까지대로 무작위.
+    const lScale = (obj.presetLScale !== undefined)
+        ? obj.presetLScale
+        : CONFIG.geodesicLScaleMin + Math.random() * (CONFIG.geodesicLScaleMax - CONFIG.geodesicLScaleMin);
+    obj.geo = { r, phi, vr: 0, L: Lcirc * lScale };
 }
 
 function updateGeodesicPhysics(deltaTime) {
@@ -512,7 +517,8 @@ function updateGeodesicPhysics(deltaTime) {
         const g = obj.geo;
         const rFloor = CONFIG.geodesicHorizonPad * M;
 
-        // leapfrog: r, vr을 kick-drift-kick으로. φ는 갱신된 r로 구적(quadrature).
+        // r, vr은 고정 시간간격 kick-drift-kick으로. φ는 갱신된 r로 별도 구적(quadrature) —
+        // 전체를 "심플렉틱 leapfrog"라 부르지 않는다(PAPER_DRAFT.md §3.4·재검토서 참고).
         g.vr += geodesicRadialAccel(g.r, g.L, M) * dtau / 2;
         g.r += g.vr * dtau;
 
@@ -536,7 +542,7 @@ function updateGeodesicPhysics(deltaTime) {
 
 // opts로 무작위 요소를 고정할 수 있다(숫자 키 프리셋 전용). 넘기지 않으면 지금까지와 완전히 동일하게
 // 동작한다 — 드래그 스폰의 거동은 바꾸지 않는다.
-//   opts.ecc       : FLAMM 진입 시 L_circ에 곱할 이심률 계수. 생략 시 initGeodesic이 무작위로 뽑는다
+//   opts.lScale    : FLAMM 진입 시 L_circ에 곱할 각운동량 배율. 생략 시 initGeodesic이 무작위로 뽑는다
 //   opts.onSettled : growth가 끝나 settling이 풀린 직후 호출. RUBBER 속도는 반드시 여기서 넣어야 한다 —
 //                    settling 동안 updateNewtonianPhysics가 매 프레임 속도를 0으로 되돌리기 때문에
 //                    생성 시점에 준 초기 속도는 그대로 버려진다.
@@ -565,13 +571,14 @@ function createMass(pos, scale, mass, opts = {}) {
         initialVelocity.copy(tangent).multiplyScalar(speed);
     }
     // 질량을 즉시 등록하되 기여도(growth)를 0에서 키운다. 우물이 서서히 깊어지고 공은 매 프레임
-    // restHeight를 따라 그 안으로 가라앉는다 = "질량이 놓이자 시공간이 반응한다".
+    // restHeight를 따라 그 안으로 가라앉는다 — 선택된 곡면 표현이 질량 매개변수의
+    // 변화에 따라 점진적으로 갱신되는 연출이다.
     // 예전에는 공을 y=0까지 떨어뜨린 뒤 착지 순간에 등록해서, 우물이 한 프레임 만에 생기며
     // 공이 바닥으로 순간이동했다("팍 닿는" 느낌). settling 동안은 N-body 적분을 멈춰 둔다.
     const obj = {
         mesh: mesh, mass: mass, velocity: initialVelocity,
         growth: 0, settling: true,
-        presetEcc: opts.ecc   // undefined면 initGeodesic이 지금까지대로 무작위로 뽑는다
+        presetLScale: opts.lScale   // undefined면 initGeodesic이 지금까지대로 무작위로 뽑는다
     };
     state.masses.push(obj);
     updateShaderData();
@@ -647,8 +654,8 @@ btnToggle.addEventListener("click", () => { if(state.viewMode === 'GOD') setFpsV
 
 // 고무판(뉴턴 근사) ↔ Flamm paraboloid(Schwarzschild 공간 임베딩) 비교 토글
 const MODEL_NOTES = {
-    RUBBER: "Rubber-sheet: 뉴턴 퍼텐셜 모양 (−K·m/r). 공간 곡률만 흉내내는 비유.",
-    FLAMM: "Flamm paraboloid: z(r)=√(8M(r−2M)), r=500에서 절단. 단일 질량은 엄밀, 다중 질량은 선형 중첩 근사."
+    RUBBER: "Rubber-sheet: Plummer 소프트닝 퍼텐셜 (−K·m/√(r²+ε²)). 곡면은 공간 곡률이 아니라 퍼텐셜 그래프.",
+    FLAMM: "Flamm paraboloid: z(r)=√(8M(r−2M)), r=500에서 절단. 중심 질량 하나만 반영 — 궤도체는 곡면을 바꾸지 않는 시험입자."
 };
 // 버튼 클릭과 N 키가 공유하는 토글 로직.
 function toggleModel() {
@@ -736,7 +743,7 @@ function spawnPreset(n) {
         // 위성이 서로도 당기므로 구성이 다 갖춰져야 속도가 정해지고, settling 중에는
         // 어차피 속도가 매 프레임 0으로 되돌려진다.
         const opts = state.randomPlacement ? {} : {
-            ecc: CONFIG.presetEcc,
+            lScale: CONFIG.presetLScale,
             onSettled: () => { if(!state.masses.some(m => m.settling)) circularizePreset(); }
         };
         createMass(pos, massToScale(mass), mass, opts);
