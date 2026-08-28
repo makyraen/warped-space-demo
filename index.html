@@ -97,6 +97,10 @@
 
         for(int i = 0; i < 5; i++) {
             if(i >= uMassCount) break;
+            // Flamm 모드에서는 중심 질량(0번)만 배경 기하에 기여한다. 궤도체는 그 기하 위의
+            // 시험입자이지 곡면을 정의하는 소스가 아니다 — 여기서 걸러야 CPU의 surfaceDepth(),
+            // 구 안착 높이, 1인칭 카메라 높이와 계속 어긋나지 않는다(항상 함께 고칠 것).
+            if(uMode == 1 && i != 0) continue;
 
             float dx = worldPosition.x - uMassPositions[i].x;
             float dz = worldPosition.z - uMassPositions[i].z;

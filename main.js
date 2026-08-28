@@ -169,7 +169,7 @@ function updateObserverHud() {
     const el = document.getElementById("view-mode-text");
     if(state.viewMode !== 'FPS') return;
     if(state.fps.phase !== 'ARRIVED') {
-        el.innerText = "OBSERVER — 자유낙하 중 (질량에 다가가면 조작 가능)";
+        el.innerText = "OBSERVER — 표면 탐색 이동 중 (질량에 다가가면 조작 가능)";
         el.style.color = "#00ccff";
     } else if(state.fps.freeFlight) {
         el.innerText = "OBSERVER — 자유비행 (Space: 격자면 붙기)";
@@ -312,7 +312,10 @@ function restHeight(x, z, R) {
 
 function surfaceDepth(x, z) {
     let depth = 0.0;
-    state.masses.forEach(massObj => {
+    state.masses.forEach((massObj, i) => {
+        // Flamm 모드에서는 중심 질량(0번)만 배경 기하에 기여한다. 궤도체는 그 기하 위의
+        // 시험입자이지 곡면을 정의하는 소스가 아니다 — 정점 셰이더의 같은 분기와 항상 함께 고칠 것.
+        if(state.model === 'FLAMM' && i !== 0) return;
         const dx = x - massObj.mesh.position.x;
         const dz = z - massObj.mesh.position.z;
         const effMass = massObj.mass * massObj.growth;   // 생성 중에는 기여도가 서서히 커진다
