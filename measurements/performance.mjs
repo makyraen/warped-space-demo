@@ -14,17 +14,22 @@
 //
 // 실행: node measurements/performance.mjs   (앱이 127.0.0.1:8777에 떠 있어야 함)
 
-import { chromium } from 'playwright';
+import { chromium, firefox, webkit } from 'playwright';
 import { writeFileSync, mkdirSync } from 'fs';
 
 const APP_URL = 'http://127.0.0.1:8777/index.html?debug';
 const HEADLESS = process.env.HEADLESS === '1';
 const SECONDS = Number(process.env.SECONDS || 4);
 const VIEWPORT = { width: 1280, height: 720 };
+// BROWSER=chromium(기본)|firefox|webkit — vsync 해제 플래그는 Chromium 전용이라
+// 다른 엔진에서는 적용하지 않는다(그 엔진의 기본 프레임 페이싱을 그대로 잰다는 뜻).
+const BROWSER = process.env.BROWSER || 'chromium';
+const ENGINE = { chromium, firefox, webkit }[BROWSER];
+if (!ENGINE) throw new Error(`알 수 없는 BROWSER=${BROWSER}`);
 
-const browser = await chromium.launch({
+const browser = await ENGINE.launch({
     headless: HEADLESS,
-    args: ['--disable-gpu-vsync', '--disable-frame-rate-limit'],
+    ...(BROWSER === 'chromium' ? { args: ['--disable-gpu-vsync', '--disable-frame-rate-limit'] } : {}),
 });
 const page = await browser.newPage({ viewport: VIEWPORT });
 const errs = [];
@@ -101,18 +106,35 @@ async function measure(model, massCount) {
 // 의도적 조치) 1회 측정으로는 질량 개수별 차이를 분해할 수 없다. 게다가 열·스케줄링 드리프트가
 // 측정 순서에 따라 편향을 만든다. 그래서 **라운드를 반복하고 라운드 간 산포를 함께 보고**하여,
 // 관측된 차이가 잡음보다 큰지 판단할 수 있게 한다.
+// 재현 가능한 순서 무작위화(선형 합동 난수) — 라운드마다 (모델,질량개수) 12개 조건의 순서를
+// 섞어, 측정 순서 자체(열·스케줄링 드리프트)가 조건과 얽히지 않게 한다.
+function makeRng(seed) {
+    let x = seed >>> 0;
+    return () => (x = (1103515245 * x + 12345) >>> 0) / 4294967296;
+}
+function shuffle(arr, rng) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
 const ROUNDS = Number(process.env.ROUNDS || 3);
+const SEED = Number(process.env.SEED || 20260828);
+const rng = makeRng(SEED);
+const ALL_CONFIGS = ['RUBBER', 'FLAMM'].flatMap(model => [0, 1, 2, 3, 4, 5].map(n => ({ model, n })));
 const byConfig = new Map();
 for (let round = 0; round < ROUNDS; round++) {
-    for (const model of ['RUBBER', 'FLAMM']) {
-        for (const n of [0, 1, 2, 3, 4, 5]) {
-            const r = await measure(model, n);
-            const key = `${model}/${n}`;
-            if (!byConfig.has(key)) byConfig.set(key, { model, massCount: n, runs: [] });
-            byConfig.get(key).runs.push(r);
-        }
+    const order = shuffle(ALL_CONFIGS, rng);
+    for (const { model, n } of order) {
+        const r = await measure(model, n);
+        const key = `${model}/${n}`;
+        if (!byConfig.has(key)) byConfig.set(key, { model, massCount: n, runs: [] });
+        byConfig.get(key).runs.push(r);
     }
-    console.error(`  (라운드 ${round + 1}/${ROUNDS} 완료)`);
+    console.error(`  (라운드 ${round + 1}/${ROUNDS} 완료, 순서: ${order.map(c => c.model[0] + c.n).join(' ')})`);
 }
 
 const rows = [...byConfig.values()].map(c => {
@@ -165,7 +187,8 @@ for (const model of ['RUBBER', 'FLAMM']) {
 console.log(`  ※ 60Hz(16.667ms) 기준 여유: 최악 구성에서 약 ${(16.667 / Math.max(...rows.map(r => r.medianFrameMs))).toFixed(0)}배`);
 if (errs.length) console.log('\npageerrors:', JSON.stringify(errs));
 
+const OUT_NAME = BROWSER === 'chromium' ? 'performance.json' : `performance_${BROWSER}.json`;
 mkdirSync(new URL('./results/', import.meta.url), { recursive: true });
-writeFileSync(new URL('./results/performance.json', import.meta.url),
-    JSON.stringify({ env, headless: HEADLESS, seconds: SECONDS, rows }, null, 1));
-console.log('\n→ measurements/results/performance.json 에 원자료 저장');
+writeFileSync(new URL('./results/' + OUT_NAME, import.meta.url),
+    JSON.stringify({ browser: BROWSER, env, headless: HEADLESS, seconds: SECONDS, rounds: ROUNDS, seed: SEED, rows }, null, 1));
+console.log(`\n→ measurements/results/${OUT_NAME} 에 원자료 저장`);
