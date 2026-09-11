@@ -17,12 +17,12 @@
 //
 // 실행: node measurements/precession.mjs   (앱이 127.0.0.1:8777에 떠 있어야 함)
 
-import { chromium } from 'playwright';
+import { chromium } from './browser-runtime.mjs';
 import { writeFileSync, mkdirSync } from 'fs';
 
-const APP_URL = 'http://127.0.0.1:8777/index.html?debug';
+const APP_URL = process.env.APP_URL || 'http://127.0.0.1:8777/index.html?debug';
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({ channel: process.env.WARPED_BROWSER_CHANNEL || 'msedge', headless: true });
 const page = await browser.newPage({ viewport: { width: 800, height: 600 } });
 const errs = [];
 page.on('pageerror', e => errs.push(String(e.message)));
@@ -46,7 +46,7 @@ const result = await page.evaluate(() => {
         return { r, L, M, app, harness, relDiff: Math.abs((harness - app) / app) };
     });
 
-    // 앱의 updateGeodesicPhysics와 동일한 스텝 구조(leapfrog on r, φ는 갱신된 r로 구적)
+    // 앱의 updateGeodesicPhysics와 동일한 스텝 구조(leapfrog on r, φ는 양 끝 각속도의 사다리꼴 구적)
     function integrate({ M, rPeri, kL, includeGR, dtau, orbits }) {
         const Lcirc = Math.sqrt(M * rPeri * rPeri / (rPeri - 3 * M));
         const L = Lcirc * kL;
@@ -57,9 +57,10 @@ const result = await page.evaluate(() => {
         let pVr = vr, pPhi = phi, pTau = tau;
         const MAX = 6000000;
         for (let i = 0; i < MAX && peri.length < orbits + 1; i++) {
+            const rBefore = r;
             vr += accel(r, L, M, includeGR) * dtau / 2;
             r += vr * dtau;
-            phi += (L / (r * r)) * dtau;
+            phi += 0.5 * L * (1 / (rBefore * rBefore) + 1 / (r * r)) * dtau;
             vr += accel(r, L, M, includeGR) * dtau / 2;
             tau += dtau;
             if (!Number.isFinite(r) || r <= 0) return { diverged: true, atStep: i };

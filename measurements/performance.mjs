@@ -14,11 +14,12 @@
 //
 // 실행: node measurements/performance.mjs   (앱이 127.0.0.1:8777에 떠 있어야 함)
 
-import { chromium, firefox, webkit } from 'playwright';
+import { chromium, firefox, webkit } from './browser-runtime.mjs';
+import { median as summarizeMedian, quantile } from './stats.mjs';
 import { writeFileSync, mkdirSync } from 'fs';
 
-const APP_URL = 'http://127.0.0.1:8777/index.html?debug';
-const HEADLESS = process.env.HEADLESS === '1';
+const APP_URL = process.env.APP_URL || 'http://127.0.0.1:8777/index.html?debug';
+const HEADLESS = process.env.HEADLESS !== '0';
 const SECONDS = Number(process.env.SECONDS || 4);
 const VIEWPORT = { width: 1280, height: 720 };
 // BROWSER=chromium(기본)|firefox|webkit — vsync 해제 플래그는 Chromium 전용이라
@@ -29,6 +30,7 @@ if (!ENGINE) throw new Error(`알 수 없는 BROWSER=${BROWSER}`);
 
 const browser = await ENGINE.launch({
     headless: HEADLESS,
+    ...(BROWSER === 'chromium' ? { channel: process.env.WARPED_BROWSER_CHANNEL || 'msedge' } : {}),
     ...(BROWSER === 'chromium' ? { args: ['--disable-gpu-vsync', '--disable-frame-rate-limit'] } : {}),
 });
 const page = await browser.newPage({ viewport: VIEWPORT });
@@ -59,7 +61,7 @@ const env = await page.evaluate(() => {
     };
 });
 
-function pct(sorted, p) { return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))]; }
+function pct(sorted, p) { return quantile(sorted, p); }
 
 async function measure(model, massCount) {
     // 초기화 후 결정론적으로 질량 배치
@@ -139,13 +141,14 @@ for (let round = 0; round < ROUNDS; round++) {
 
 const rows = [...byConfig.values()].map(c => {
     const means = c.runs.map(r => r.meanFrameMs).sort((a, b) => a - b);
-    const median = means[Math.floor(means.length / 2)];
+    const median = summarizeMedian(means);
     return {
         model: c.model, massCount: c.massCount,
         medianFrameMs: median, minFrameMs: means[0], maxFrameMs: means[means.length - 1],
         spreadMs: means[means.length - 1] - means[0],
         fps: 1000 / median,
-        p95FrameMs: c.runs.map(r => r.p95FrameMs).sort((a, b) => a - b)[Math.floor(c.runs.length / 2)],
+        p95FrameMs: summarizeMedian(c.runs.map(r => r.p95FrameMs)),
+        runSummaries: c.runs,
         rounds: means,
     };
 });

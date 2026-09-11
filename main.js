@@ -1,10 +1,15 @@
 import * as THREE from 'three';
+import { geodesicRadialAccel, advanceGeodesic } from './physics/geodesic.mjs';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { gsap } from "https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js";
+
+// Optional fixed-model pages for the usability study; normal pages are unchanged.
+const requestedStudyModel = new URLSearchParams(location.search).get('studyModel')?.toUpperCase();
+const STUDY_MODEL = ['RUBBER', 'FLAMM'].includes(requestedStudyModel) ? requestedStudyModel : null;
 
 
 // 전역 설정
@@ -53,18 +58,18 @@ const CONFIG = {
     // gravityK·physicsSpeedScale로 100배 증폭된 힘에 맞춘 값이라 실제 M에는 탈출속도를 훨씬
     // 웃돈다 — 그대로 재사용하면 궤도가 아니라 직선으로 날아간다. 그래서 FLAMM으로 들어가는
     // 순간(생성 또는 모델 토글) 그 반경에서의 원궤도 각운동량(L_circ)을 다시 계산해 쓴다.
-    geodesicLScaleMin: 1.02, geodesicLScaleMax: 1.25,  // L_circ에 곱하는 각운동량 배율 → 세차가 보이는 구속 이심 궤도
+    geodesicLScaleMin: 1.02, geodesicLScaleMax: 1.25,  // 기본 배치에서 세차를 관찰하기 위한 각운동량 배율
     geodesicMinRFactor: 3.5,  // L_circ 공식(r>3M 필요)의 분모 안전 하한, ×M
-    geodesicHorizonPad: 2.5,  // 이 반경(×M) 안쪽은 정지 클램프. 방사 방정식 자체는 r=2M에서 발산하지
+    geodesicHorizonPad: 2.5,  // 이 반경(×M) 안쪽은 반경·방사속도 보정. 방사 방정식 자체는 r=2M에서 발산하지
     // 않지만, 포획·사건지평선 통과와 Flamm 정의역(r<2M) 밖의 표시를 구현하지 않아 두는 정책적 경계다.
     // dτ(고유시간)를 실제 프레임 시간보다 빨리 재생하는 배율. G=M=1 단위에서 진짜 궤도 주기는
     // 화면 스케일(r~100~300)에서 수십 분이 걸려 보이지 않는다 — 궤적 자체는 그대로 두고
     // "빨리 감기"만 하는 것이므로 물리(방정식)는 바뀌지 않는다.
     geodesicTimeScale: 260.0,
     // ── 고정 시간간격 적분 ──
-    // leapfrog가 "에너지를 발산시키지 않는다"는 심플렉틱 성질은 Δt가 일정할 때만 성립한다.
-    // rAF의 프레임 간격을 그대로 넘기면 그 보장이 깨지고, 측정값도 프레임률에 따라 달라져
-    // 재현이 안 된다. 그래서 누적 시간을 이 고정 간격으로 쪼개 밟는다.
+    // 충분히 작은 고정 간격을 사용하고, 에너지 오차와 안정성은 지정한 궤도에서 검증한다.
+    // rAF의 프레임 간격을 그대로 넘기면 측정값도 프레임률에 따라 달라질 수 있다.
+    // 재현 가능한 계산을 위해 누적 시간을 이 고정 간격으로 쪼개 밟는다.
     physicsTimeStep: 1 / 120,
     // 한 프레임에 밟을 수 있는 최대 스텝 수. 넘으면 밀린 시간을 버린다 —
     // 느려질지언정 따라잡으려다 폭발하지 않는다(death spiral 방지).
@@ -440,7 +445,7 @@ function updateMassPhysics(deltaTime) {
 
 // 물리 시뮬레이션 업데이트 (leapfrog / kick-drift-kick, 뉴턴 N-body — RUBBER 모드)
 // 이전 구현은 semi-implicit(symplectic) Euler를 썼다. 고정 시간간격에서는 그것도
-// 심플렉틱이라 에너지 오차가 발산하지 않고 유계 범위에서 진동하지만, 1차 정확도라
+// 심플렉틱이며 이번 측정에서는 에너지 오차가 일정 범위에서 진동했다. 1차 정확도라
 // 그 진동 폭 자체가 크다(측정: PAPER_DRAFT.md §4.1, 149배 차이). leapfrog는 스텝의
 // 앞/뒤 힘을 반씩 섞어 2차 정확도를 얻어 같은 시간간격에서 오차 진폭을 크게 줄인다.
 function updateNewtonianPhysics(deltaTime) {
@@ -478,10 +483,7 @@ function updateNewtonianPhysics(deltaTime) {
 // 마지막 항(-3ML²/r⁴)이 뉴턴에 없는 GR의 서명이다. 이 항을 포함한 전체 유효 퍼텐셜이
 // 근일점 세차·ISCO 같은 Schwarzschild 궤도의 특성을 만든다. 광자구(r=3M)는 이와 별도로
 // 영측지선(null geodesic)의 유효 퍼텐셜에서 얻어진다.
-function geodesicRadialAccel(r, L, M) {
-    const invR = 1 / r;
-    return -M * invR*invR + L*L * invR*invR*invR - 3*M*L*L * invR*invR*invR*invR;
-}
+// geodesicRadialAccel is imported from the shared physics module.
 
 // obj의 현재 위치·속도(둘 다 중심 질량 기준 상대값)로부터 측지선 상태(r, φ, vr, L)를 새로 잡는다.
 // 스폰 직후 첫 진입, 또는 RUBBER↔FLAMM 토글 직후에 호출된다.
@@ -517,16 +519,12 @@ function updateGeodesicPhysics(deltaTime) {
         const g = obj.geo;
         const rFloor = CONFIG.geodesicHorizonPad * M;
 
-        // r, vr은 고정 시간간격 kick-drift-kick으로. φ는 갱신된 r로 별도 구적(quadrature) —
-        // 전체를 "심플렉틱 leapfrog"라 부르지 않는다(PAPER_DRAFT.md §3.4·재검토서 참고).
-        g.vr += geodesicRadialAccel(g.r, g.L, M) * dtau / 2;
-        g.r += g.vr * dtau;
-
-        if(g.r > CONFIG.massLimit) { g.r = CONFIG.massLimit; if(g.vr > 0) g.vr *= -0.8; }
-        if(g.r < rFloor) { g.r = rFloor; g.vr = 0; } // 지평선 근접 클램프. 포획/병합은 미구현(한계로 명시)
-
-        g.phi += (g.L / (g.r*g.r)) * dtau;
-        g.vr += geodesicRadialAccel(g.r, g.L, M) * dtau / 2;
+        // Radial KDK and second-order trapezoidal angular quadrature.
+        // Boundary handling is a display policy, not free geodesic motion.
+        advanceGeodesic(g, M, dtau, {
+            innerRadius: rFloor,
+            outerRadius: CONFIG.massLimit,
+        });
 
         const cosP = Math.cos(g.phi), sinP = Math.sin(g.phi);
         obj.mesh.position.x = center.mesh.position.x + g.r * cosP;
@@ -655,10 +653,11 @@ btnToggle.addEventListener("click", () => { if(state.viewMode === 'GOD') setFpsV
 // 고무판(뉴턴 근사) ↔ Flamm paraboloid(Schwarzschild 공간 임베딩) 비교 토글
 const MODEL_NOTES = {
     RUBBER: "Rubber-sheet: Plummer 소프트닝 퍼텐셜 (−K·m/√(r²+ε²)). 곡면은 공간 곡률이 아니라 퍼텐셜 그래프.",
-    FLAMM: "Flamm paraboloid: z(r)=√(8M(r−2M)), r=500에서 절단. 중심 질량 하나만 반영 — 궤도체는 곡면을 바꾸지 않는 시험입자."
+    FLAMM: "Flamm paraboloid: z(r)=√(8M(r−2M)), r=490에서 절단. 중심 질량 하나만 반영 — 궤도체는 곡면을 바꾸지 않는 시험입자."
 };
-// 버튼 클릭과 N 키가 공유하는 토글 로직.
+// 버튼 클릭과 C 키가 공유하는 토글 로직.
 function toggleModel() {
+    if (STUDY_MODEL) return;
     state.model = (state.model === 'RUBBER') ? 'FLAMM' : 'RUBBER';
     const isFlamm = state.model === 'FLAMM';
     shaderMat.uniforms.uMode.value = isFlamm ? 1 : 0;
@@ -668,6 +667,15 @@ function toggleModel() {
 }
 btnModel.addEventListener("click", toggleModel);
 modelNote.innerText = MODEL_NOTES.RUBBER;
+if (STUDY_MODEL) {
+    state.model = STUDY_MODEL;
+    const isFlamm = STUDY_MODEL === 'FLAMM';
+    shaderMat.uniforms.uMode.value = isFlamm ? 1 : 0;
+    btnModel.disabled = true;
+    btnModel.classList.toggle('flamm', isFlamm);
+    btnModel.innerText = isFlamm ? '평가용: 상대론 모드 고정' : '평가용: 뉴턴 모드 고정';
+    modelNote.innerText = MODEL_NOTES[STUDY_MODEL] + ' · 이 평가 화면에서는 모델을 전환할 수 없습니다.';
+}
 // 버튼 클릭과 M 키가 공유하는 진입 로직.
 function startSpawnMode() {
     if(state.isSpawning) return; // 이미 스폰 모드면 무시(중복 진입 방지)
@@ -918,7 +926,7 @@ if(new URLSearchParams(location.search).has('debug')) {
     // updateMassPhysics·initGeodesic까지 연 이유: §4.5(두 모드 궤적 대조)가 rAF에 의존하지 않고
     // 앱의 실제 스텝 함수를 고정 간격으로 동기 구동해야 재현이 된다. 측정이 물리를 다시 구현하면
     // 통제가 성립하지 않는다 — 이 훅은 ?debug일 때만 열린다.
-    window.__warped = { state, CONFIG, computeAcceleration, geodesicRadialAccel, createMass, massToScale, scaleToMass, camera, scene, shaderMat, updateMassPhysics, initGeodesic };
+    window.__warped = { state, CONFIG, computeAcceleration, geodesicRadialAccel, advanceGeodesic, createMass, massToScale, scaleToMass, camera, scene, shaderMat, updateMassPhysics, initGeodesic };
 }
 window.addEventListener("resize", () => {
     renderer.setSize(window.innerWidth, window.innerHeight); 

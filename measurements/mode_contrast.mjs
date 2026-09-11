@@ -12,7 +12,7 @@
 //
 // 실행: 앱을 127.0.0.1:8777에 띄운 뒤  node measurements/mode_contrast.mjs
 
-import { chromium } from 'playwright';
+import { chromium } from './browser-runtime.mjs';
 import { writeFileSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 
@@ -27,12 +27,12 @@ const CENTER_MASS = 100, SAT_MASS = 100;
 // 경계(massLimit=340)에 닿지 않는다. K를 공유하는 것이 "동일 조건"의 정의다.
 const K = 0.85;
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({ channel: process.env.WARPED_BROWSER_CHANNEL || 'msedge', headless: true });
 const page = await browser.newPage({ viewport: { width: 900, height: 650 } });
 const errs = [];
 page.on('pageerror', e => errs.push(String(e.message)));
 page.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
-await page.goto('http://127.0.0.1:8777/index.html?debug', { waitUntil: 'load' });
+await page.goto(process.env.APP_URL || 'http://127.0.0.1:8777/index.html?debug', { waitUntil: 'load' });
 await page.waitForFunction(() => !!window.__warped, null, { timeout: 20000 });
 await page.waitForTimeout(500);
 

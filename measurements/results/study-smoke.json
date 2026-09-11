@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-09-11T08:45:52.532Z",
+  "records": [
+    {
+      "mode": "NORMAL",
+      "before": {
+        "model": "RUBBER",
+        "disabled": false,
+        "shader": 0,
+        "note": "Rubber-sheet: Plummer 소프트닝 퍼텐셜 (−K·m/√(r²+ε²)). 곡면은 공간 곡률이 아니라 퍼텐셜 그래프."
+      },
+      "after": "FLAMM",
+      "errors": []
+    },
+    {
+      "mode": "RUBBER",
+      "before": {
+        "model": "RUBBER",
+        "disabled": true,
+        "shader": 0,
+        "note": "Rubber-sheet: Plummer 소프트닝 퍼텐셜 (−K·m/√(r²+ε²)). 곡면은 공간 곡률이 아니라 퍼텐셜 그래프. · 이 평가 화면에서는 모델을 전환할 수 없습니다."
+      },
+      "after": "RUBBER",
+      "errors": []
+    },
+    {
+      "mode": "FLAMM",
+      "before": {
+        "model": "FLAMM",
+        "disabled": true,
+        "shader": 1,
+        "note": "Flamm paraboloid: z(r)=√(8M(r−2M)), r=490에서 절단. 중심 질량 하나만 반영 — 궤도체는 곡면을 바꾸지 않는 시험입자. · 이 평가 화면에서는 모델을 전환할 수 없습니다."
+      },
+      "after": "FLAMM",
+      "errors": []
+    }
+  ],
+  "scope": "Functional study-condition checks only; no participant data"
+}

@@ -11,12 +11,12 @@
 //
 // 실행: node measurements/convergence.mjs   (앱이 127.0.0.1:8777에 떠 있어야 함)
 
-import { chromium } from 'playwright';
+import { chromium } from './browser-runtime.mjs';
 import { writeFileSync, mkdirSync } from 'fs';
 
-const APP_URL = 'http://127.0.0.1:8777/index.html?debug';
+const APP_URL = process.env.APP_URL || 'http://127.0.0.1:8777/index.html?debug';
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({ channel: process.env.WARPED_BROWSER_CHANNEL || 'msedge', headless: true });
 const page = await browser.newPage({ viewport: { width: 800, height: 600 } });
 const errs = [];
 page.on('pageerror', e => errs.push(String(e.message)));
