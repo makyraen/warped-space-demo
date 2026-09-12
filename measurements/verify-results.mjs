@@ -42,8 +42,8 @@ const paper=readFileSync(new URL('../paper/manuscript.md',import.meta.url),'utf8
 for(const m of paper.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g))assert.ok(existsSync(new URL('../paper/'+m[1],import.meta.url)),'Missing '+m[1]);
 assert.equal((paper.match(/^\[\d+\]/gm)||[]).length,15);
 assert.ok(paper.includes('20.1–379.6'));
-assert.ok(paper.includes('2.79–3.01'));
-assert.ok(paper.includes('17.33'));
+assert.ok(paper.includes('1.40–1.45'));
+assert.ok(paper.includes('2.60'));
 assert.ok(!/\*\*그림 8\./.test(paper));
 }
 console.log('PASS: independent reference, analytical circular orbit, reversibility, app linkage, raw-frame statistics, shared-source hashes, '+(dataOnly?'data-only checks.':'paper figures and headline values.'));

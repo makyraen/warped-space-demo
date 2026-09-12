@@ -1,15 +1,15 @@
 {
   "meta": {
-    "generatedAt": "2026-09-11T08:09:46.468Z",
+    "generatedAt": "2026-09-11T22:38:07.377Z",
     "h0": 2.1666666666666665,
     "cycles": 6,
     "observations": "Shared proper-time samples over at least six radial periods; extrema are sampled maxima.",
-    "node": "v24.19.0",
-    "platform": "win32",
-    "cpu": "Intel(R) Core(TM) Ultra 7 265K",
+    "node": "v26.7.0",
+    "platform": "darwin",
+    "cpu": "Apple M4 Max",
     "physicsSha256": "b1ce102bbf11108a6863ca039807e237738ff108a1bdcded2332d3f25ec57c2c",
     "reference": "Darwin anomaly DOP853 in proper time, with independent quadrature for period and precession",
-    "python": "3.12.14",
+    "python": "3.13.15",
     "numpy": "2.5.3",
     "scipy": "1.18.1",
     "referenceTolerances": [
@@ -33,12 +33,12 @@
       "E2": 0.9918198136592871,
       "period": 8493.428696102816,
       "exactPrecessionRad": 0.1632305203610347,
-      "referenceRefinementMaxPositionOverP": 1.0407222816029396e-13,
+      "referenceRefinementMaxPositionOverP": 9.07983851945157e-14,
       "sampleCount": 4706,
       "duration": 50962.166666666664,
       "orders": {
-        "right-endpoint": 1.0008330497011355,
-        "trapezoid": 2.0000012729402252
+        "right-endpoint": 1.0008330503371534,
+        "trapezoid": 1.9999985960979962
       },
       "runs": [
         {
@@ -48,10 +48,10 @@
           "maxEnergyRelative": 6.454220562339945e-11,
           "minR": 109.09090909090908,
           "maxR": 133.3333320212996,
-          "maxPositionErrorOverP": 0.0003717031922799349,
-          "rmsPositionErrorOverP": 0.00023799983408752756,
-          "maxRadialErrorOverP": 4.208674360720958e-07,
-          "maxAngleErrorRad": 0.0003345328779857937
+          "maxPositionErrorOverP": 0.0003717031922088228,
+          "rmsPositionErrorOverP": 0.00023799983407684415,
+          "maxRadialErrorOverP": 4.2086743524312926e-07,
+          "maxAngleErrorRad": 0.00033453287792184483
         },
         {
           "angleRule": "right-endpoint",
@@ -60,10 +60,10 @@
           "maxEnergyRelative": 1.6135635359331836e-11,
           "minR": 109.09090909090908,
           "maxR": 133.33333300064405,
-          "maxPositionErrorOverP": 0.00018566513331758004,
-          "rmsPositionErrorOverP": 0.00011895811544608804,
-          "maxRadialErrorOverP": 1.0521682192177195e-07,
-          "maxAngleErrorRad": 0.00016709862131136788
+          "maxPositionErrorOverP": 0.00018566513324637545,
+          "rmsPositionErrorOverP": 0.00011895811543540263,
+          "maxRadialErrorOverP": 1.0521682109280542e-07,
+          "maxAngleErrorRad": 0.00016709862124741903
         },
         {
           "angleRule": "right-endpoint",
@@ -72,10 +72,10 @@
           "maxEnergyRelative": 4.034020777808924e-12,
           "minR": 109.09090909090908,
           "maxR": 133.33333325087258,
-          "maxPositionErrorOverP": 9.27859499121729e-05,
-          "rmsPositionErrorOverP": 5.946862026784066e-05,
-          "maxRadialErrorOverP": 2.6304214510256923e-08,
-          "maxAngleErrorRad": 8.350735544127019e-05
+          "maxPositionErrorOverP": 9.278594984106085e-05,
+          "rmsPositionErrorOverP": 5.946862025715386e-05,
+          "maxRadialErrorOverP": 2.6304213681290398e-08,
+          "maxAngleErrorRad": 8.350735537732135e-05
         },
         {
           "angleRule": "right-endpoint",
@@ -84,10 +84,10 @@
           "maxEnergyRelative": 1.0086731014161778e-12,
           "minR": 109.09090909090908,
           "maxR": 133.33333331210662,
-          "maxPositionErrorOverP": 4.638132032232904e-05,
-          "rmsPositionErrorOverP": 2.973170226262018e-05,
-          "maxRadialErrorOverP": 6.576088769823703e-09,
-          "maxAngleErrorRad": 4.1743188532450404e-05
+          "maxPositionErrorOverP": 4.6381320251217e-05,
+          "rmsPositionErrorOverP": 2.9731702251933044e-05,
+          "maxRadialErrorOverP": 6.576087940857178e-09,
+          "maxAngleErrorRad": 4.174318846850156e-05
         },
         {
           "angleRule": "trapezoid",
@@ -96,10 +96,10 @@
           "maxEnergyRelative": 6.454220562339945e-11,
           "minR": 109.09090909090908,
           "maxR": 133.3333320212996,
-          "maxPositionErrorOverP": 9.790917362387182e-07,
-          "rmsPositionErrorOverP": 4.1131133526543463e-07,
-          "maxRadialErrorOverP": 4.208674360720958e-07,
-          "maxAngleErrorRad": 1.0761614603893577e-06
+          "maxPositionErrorOverP": 9.79091826523037e-07,
+          "rmsPositionErrorOverP": 4.1131133314112274e-07,
+          "maxRadialErrorOverP": 4.2086743524312926e-07,
+          "maxAngleErrorRad": 1.0761615527599133e-06
         },
         {
           "angleRule": "trapezoid",
@@ -108,10 +108,10 @@
           "maxEnergyRelative": 1.6135635359331836e-11,
           "minR": 109.09090909090908,
           "maxR": 133.33333300064405,
-          "maxPositionErrorOverP": 2.4477280002198636e-07,
-          "rmsPositionErrorOverP": 1.0282778821160728e-07,
-          "maxRadialErrorOverP": 1.0521682192177195e-07,
-          "maxAngleErrorRad": 2.690402212124354e-07
+          "maxPositionErrorOverP": 2.4477289030630314e-07,
+          "rmsPositionErrorOverP": 1.028277860877685e-07,
+          "maxRadialErrorOverP": 1.0521682109280542e-07,
+          "maxAngleErrorRad": 2.690403135829911e-07
         },
         {
           "angleRule": "trapezoid",
@@ -120,10 +120,10 @@
           "maxEnergyRelative": 4.034020777808924e-12,
           "minR": 109.09090909090908,
           "maxR": 133.33333325087258,
-          "maxPositionErrorOverP": 6.119368340594822e-08,
-          "rmsPositionErrorOverP": 2.5706970863507874e-08,
-          "maxRadialErrorOverP": 2.6304214510256923e-08,
-          "maxAngleErrorRad": 6.72605935392312e-08
+          "maxPositionErrorOverP": 6.119377376127266e-08,
+          "rmsPositionErrorOverP": 2.5706968739822458e-08,
+          "maxRadialErrorOverP": 2.6304213681290398e-08,
+          "maxAngleErrorRad": 6.726068590978684e-08
         },
         {
           "angleRule": "trapezoid",
@@ -132,10 +132,10 @@
           "maxEnergyRelative": 1.0086731014161778e-12,
           "minR": 109.09090909090908,
           "maxR": 133.33333331210662,
-          "maxPositionErrorOverP": 1.5298223101627603e-08,
-          "rmsPositionErrorOverP": 6.426776659657573e-09,
-          "maxRadialErrorOverP": 6.576088769823703e-09,
-          "maxAngleErrorRad": 1.681493699834391e-08
+          "maxPositionErrorOverP": 1.5298313480723113e-08,
+          "rmsPositionErrorOverP": 6.426774536011668e-09,
+          "maxRadialErrorOverP": 6.576087940857178e-09,
+          "maxAngleErrorRad": 1.681502936889956e-08
         }
       ]
     },
@@ -150,12 +150,12 @@
       "E2": 0.9924756935534457,
       "period": 9627.698062873662,
       "exactPrecessionRad": 0.16326028269074921,
-      "referenceRefinementMaxPositionOverP": 5.714389604555965e-14,
+      "referenceRefinementMaxPositionOverP": 1.2798834565630179e-13,
       "sampleCount": 4445,
       "duration": 57767.666666666664,
       "orders": {
-        "right-endpoint": 1.000398051732171,
-        "trapezoid": 2.0000038578144115
+        "right-endpoint": 1.0003980518263276,
+        "trapezoid": 2.00000411555128
       },
       "runs": [
         {
@@ -165,10 +165,10 @@
           "maxEnergyRelative": 9.37170763899418e-10,
           "minR": 92.3076923076923,
           "maxR": 171.42855058195832,
-          "maxPositionErrorOverP": 0.0014326984414275046,
-          "rmsPositionErrorOverP": 0.000987986826581285,
-          "maxRadialErrorOverP": 2.5281793305964586e-06,
-          "maxAngleErrorRad": 0.0010028893302376218
+          "maxPositionErrorOverP": 0.0014326984413868906,
+          "rmsPositionErrorOverP": 0.0009879868265669856,
+          "maxRadialErrorOverP": 2.5281793046616484e-06,
+          "maxAngleErrorRad": 0.0010028893302092001
         },
         {
           "angleRule": "right-endpoint",
@@ -177,10 +177,10 @@
           "maxEnergyRelative": 2.342927748728556e-10,
           "minR": 92.3076923076923,
           "maxR": 171.42856621457477,
-          "maxPositionErrorOverP": 0.0007160056667426026,
-          "rmsPositionErrorOverP": 0.0004940126691724089,
-          "maxRadialErrorOverP": 6.320444969768838e-07,
-          "maxAngleErrorRad": 0.0005012041416847524
+          "maxPositionErrorOverP": 0.0007160056667019881,
+          "rmsPositionErrorOverP": 0.000494012669158123,
+          "maxRadialErrorOverP": 6.32044471042074e-07,
+          "maxAngleErrorRad": 0.0005012041416563306
         },
         {
           "angleRule": "right-endpoint",
@@ -189,10 +189,10 @@
           "maxEnergyRelative": 5.857333354821576e-11,
           "minR": 92.3076923076923,
           "maxR": 171.42857012265978,
-          "maxPositionErrorOverP": 0.00035791693167676477,
-          "rmsPositionErrorOverP": 0.00024701126518404226,
-          "maxRadialErrorOverP": 1.580111260797897e-07,
-          "maxAngleErrorRad": 0.0002505419351948035
+          "maxPositionErrorOverP": 0.00035791693163615034,
+          "rmsPositionErrorOverP": 0.00024701126516976207,
+          "maxRadialErrorOverP": 1.5801110014497984e-07,
+          "maxAngleErrorRad": 0.0002505419351663818
         },
         {
           "angleRule": "right-endpoint",
@@ -201,10 +201,10 @@
           "maxEnergyRelative": 1.464344525105543e-11,
           "minR": 92.3076923076923,
           "maxR": 171.4285711016686,
-          "maxPositionErrorOverP": 0.00017893698817462962,
-          "rmsPositionErrorOverP": 0.00012350687985356778,
-          "maxRadialErrorOverP": 3.950270333064054e-08,
-          "maxAngleErrorRad": 0.00012525593267298518
+          "maxPositionErrorOverP": 0.00017893698813401527,
+          "rmsPositionErrorOverP": 0.00012350687983929068,
+          "maxRadialErrorOverP": 3.9502677395830685e-08,
+          "maxAngleErrorRad": 0.00012525593264456347
         },
         {
           "angleRule": "trapezoid",
@@ -213,10 +213,10 @@
           "maxEnergyRelative": 9.37170763899418e-10,
           "minR": 92.3076923076923,
           "maxR": 171.42855058195832,
-          "maxPositionErrorOverP": 7.397307052560578e-06,
-          "rmsPositionErrorOverP": 2.3288168731782896e-06,
-          "maxRadialErrorOverP": 2.5281793305964586e-06,
-          "maxAngleErrorRad": 9.610488270084261e-06
+          "maxPositionErrorOverP": 7.3973069868136e-06,
+          "rmsPositionErrorOverP": 2.3288168630715962e-06,
+          "maxRadialErrorOverP": 2.5281793046616484e-06,
+          "maxAngleErrorRad": 9.610488184819133e-06
         },
         {
           "angleRule": "trapezoid",
@@ -225,10 +225,10 @@
           "maxEnergyRelative": 2.342927748728556e-10,
           "minR": 92.3076923076923,
           "maxR": 171.42856621457477,
-          "maxPositionErrorOverP": 1.8493257477725365e-06,
-          "rmsPositionErrorOverP": 5.822036331622526e-07,
-          "maxRadialErrorOverP": 6.320444969768838e-07,
-          "maxAngleErrorRad": 2.402620808084066e-06
+          "maxPositionErrorOverP": 1.8493256820255588e-06,
+          "rmsPositionErrorOverP": 5.82203623054388e-07,
+          "maxRadialErrorOverP": 6.32044471042074e-07,
+          "maxAngleErrorRad": 2.402620722818938e-06
         },
         {
           "angleRule": "trapezoid",
@@ -237,10 +237,10 @@
           "maxEnergyRelative": 5.857333354821576e-11,
           "minR": 92.3076923076923,
           "maxR": 171.42857012265978,
-          "maxPositionErrorOverP": 4.623313507544098e-07,
-          "rmsPositionErrorOverP": 1.4555086909834233e-07,
-          "maxRadialErrorOverP": 1.580111260797897e-07,
-          "maxAngleErrorRad": 6.006550847814651e-07
+          "maxPositionErrorOverP": 4.6233128500743217e-07,
+          "rmsPositionErrorOverP": 1.455508589910973e-07,
+          "maxRadialErrorOverP": 1.5801110014497984e-07,
+          "maxAngleErrorRad": 6.006549995163368e-07
         },
         {
           "angleRule": "trapezoid",
@@ -249,10 +249,10 @@
           "maxEnergyRelative": 1.464344525105543e-11,
           "minR": 92.3076923076923,
           "maxR": 171.4285711016686,
-          "maxPositionErrorOverP": 1.1558189964128328e-07,
-          "rmsPositionErrorOverP": 3.6387425103126916e-08,
-          "maxRadialErrorOverP": 3.950270333064054e-08,
-          "maxAngleErrorRad": 1.501625277455787e-07
+          "maxPositionErrorOverP": 1.1558183389430559e-07,
+          "rmsPositionErrorOverP": 3.6387414995124316e-08,
+          "maxRadialErrorOverP": 3.9502677395830685e-08,
+          "maxAngleErrorRad": 1.501624424804504e-07
         }
       ]
     },
@@ -265,14 +265,14 @@
       "ra": 300,
       "L": 11.11111111111111,
       "E2": 0.9946959304983997,
-      "period": 16266.385866213019,
+      "period": 16266.385866213017,
       "exactPrecessionRad": 0.1633607364716303,
-      "referenceRefinementMaxPositionOverP": 3.981167095695043e-12,
+      "referenceRefinementMaxPositionOverP": 4.169631721577524e-12,
       "sampleCount": 4506,
       "duration": 97599.66666666666,
       "orders": {
-        "right-endpoint": 0.9998918165825913,
-        "trapezoid": 2.0000010170092093
+        "right-endpoint": 0.9998918165796562,
+        "trapezoid": 2.0000009213000953
       },
       "runs": [
         {
@@ -282,10 +282,10 @@
           "maxEnergyRelative": 7.758815360900896e-09,
           "minR": 75,
           "maxR": 299.99968517428744,
-          "maxPositionErrorOverP": 0.00501412027361854,
-          "rmsPositionErrorOverP": 0.00372480930960317,
-          "maxRadialErrorOverP": 5.551406273565836e-05,
-          "maxAngleErrorRad": 0.00200565435446709
+          "maxPositionErrorOverP": 0.0050141202736229745,
+          "rmsPositionErrorOverP": 0.0037248093095594284,
+          "maxRadialErrorOverP": 5.5514062930465496e-05,
+          "maxAngleErrorRad": 0.0020056543544684224
         },
         {
           "angleRule": "right-endpoint",
@@ -294,10 +294,10 @@
           "maxEnergyRelative": 1.9397025008534736e-09,
           "minR": 75,
           "maxR": 299.9999212869832,
-          "maxPositionErrorOverP": 0.002507387483605564,
-          "rmsPositionErrorOverP": 0.0018656308892904025,
-          "maxRadialErrorOverP": 1.3878496974821057e-05,
-          "maxAngleErrorRad": 0.0010029560707747187
+          "maxPositionErrorOverP": 0.0025073874836099986,
+          "rmsPositionErrorOverP": 0.0018656308892458983,
+          "maxRadialErrorOverP": 1.387849716962819e-05,
+          "maxAngleErrorRad": 0.001002956070776051
         },
         {
           "angleRule": "right-endpoint",
@@ -306,10 +306,10 @@
           "maxEnergyRelative": 4.849256810205247e-10,
           "minR": 75,
           "maxR": 299.99998031008334,
-          "maxPositionErrorOverP": 0.001253775414423596,
-          "rmsPositionErrorOverP": 0.0009336300487822344,
-          "maxRadialErrorOverP": 3.4696225342874715e-06,
-          "maxAngleErrorRad": 0.0005015105525898456
+          "maxPositionErrorOverP": 0.0012537754144280313,
+          "rmsPositionErrorOverP": 0.0009336300487373507,
+          "maxRadialErrorOverP": 3.469622729094605e-06,
+          "maxAngleErrorRad": 0.0005015105525916219
         },
         {
           "angleRule": "right-endpoint",
@@ -318,10 +318,10 @@
           "maxEnergyRelative": 1.2123155977302185e-10,
           "minR": 75,
           "maxR": 299.9999950661133,
-          "maxPositionErrorOverP": 0.0006269081048090127,
-          "rmsPositionErrorOverP": 0.00046701967912144175,
-          "maxRadialErrorOverP": 8.674051284648007e-07,
-          "maxAngleErrorRad": 0.00025076342881513725
+          "maxPositionErrorOverP": 0.0006269081048134479,
+          "rmsPositionErrorOverP": 0.0004670196790763695,
+          "maxRadialErrorOverP": 8.67405323271934e-07,
+          "maxAngleErrorRad": 0.0002507634288169136
         },
         {
           "angleRule": "trapezoid",
@@ -330,10 +330,10 @@
           "maxEnergyRelative": 7.758815360900896e-09,
           "minR": 75,
           "maxR": 299.99968517428744,
-          "maxPositionErrorOverP": 0.00014669233372740503,
-          "rmsPositionErrorOverP": 3.852363080387443e-05,
-          "maxRadialErrorOverP": 5.551406273565836e-05,
-          "maxAngleErrorRad": 0.0002346945247069243
+          "maxPositionErrorOverP": 0.00014669233421155933,
+          "rmsPositionErrorOverP": 3.8523630965630774e-05,
+          "maxRadialErrorOverP": 5.5514062930465496e-05,
+          "maxAngleErrorRad": 0.0002346945254814159
         },
         {
           "angleRule": "trapezoid",
@@ -342,10 +342,10 @@
           "maxEnergyRelative": 1.9397025008534736e-09,
           "minR": 75,
           "maxR": 299.9999212869832,
-          "maxPositionErrorOverP": 3.667304094384511e-05,
-          "rmsPositionErrorOverP": 9.630860694791796e-06,
-          "maxRadialErrorOverP": 1.3878496974821057e-05,
-          "maxAngleErrorRad": 5.867360421518697e-05
+          "maxPositionErrorOverP": 3.6673041427965705e-05,
+          "rmsPositionErrorOverP": 9.630860856547218e-06,
+          "maxRadialErrorOverP": 1.387849716962819e-05,
+          "maxAngleErrorRad": 5.867360498967855e-05
         },
         {
           "angleRule": "trapezoid",
@@ -354,10 +354,10 @@
           "maxEnergyRelative": 4.849256810205247e-10,
           "minR": 75,
           "maxR": 299.99998031008334,
-          "maxPositionErrorOverP": 9.168256102790512e-06,
-          "rmsPositionErrorOverP": 2.4077123495330104e-06,
-          "maxRadialErrorOverP": 3.4696225342874715e-06,
-          "maxAngleErrorRad": 1.4668396978834153e-05
+          "maxPositionErrorOverP": 9.168256587012172e-06,
+          "rmsPositionErrorOverP": 2.4077125112881123e-06,
+          "maxRadialErrorOverP": 3.469622729094605e-06,
+          "maxAngleErrorRad": 1.4668397753325735e-05
         },
         {
           "angleRule": "trapezoid",
@@ -366,10 +366,10 @@
           "maxEnergyRelative": 1.2123155977302185e-10,
           "minR": 75,
           "maxR": 299.9999950661133,
-          "maxPositionErrorOverP": 2.292062673049322e-06,
-          "rmsPositionErrorOverP": 6.019275978641433e-07,
-          "maxRadialErrorOverP": 8.674051284648007e-07,
-          "maxAngleErrorRad": 3.6670972392016665e-06
+          "maxPositionErrorOverP": 2.2920631572036052e-06,
+          "rmsPositionErrorOverP": 6.019277596196494e-07,
+          "maxRadialErrorOverP": 8.67405323271934e-07,
+          "maxAngleErrorRad": 3.6670980136932485e-06
         }
       ]
     },
@@ -382,14 +382,14 @@
       "ra": 133.33333333333334,
       "L": 26.19238385278012,
       "E2": 0.9606955693187232,
-      "period": 4047.18157435226,
+      "period": 4047.1815743522593,
       "exactPrecessionRad": 0.9721801054826615,
-      "referenceRefinementMaxPositionOverP": 1.0985166171563421e-13,
+      "referenceRefinementMaxPositionOverP": 1.342491270874992e-13,
       "sampleCount": 5605,
       "duration": 24284.0,
       "orders": {
-        "right-endpoint": 1.001757664185404,
-        "trapezoid": 2.0000005968420425
+        "right-endpoint": 1.0017576645743465,
+        "trapezoid": 2.0000004396967426
       },
       "runs": [
         {
@@ -399,10 +399,10 @@
           "maxEnergyRelative": 1.2753166547713274e-09,
           "minR": 109.09090909090908,
           "maxR": 133.333327849529,
-          "maxPositionErrorOverP": 0.0008794937012852449,
-          "rmsPositionErrorOverP": 0.0005615874741057488,
-          "maxRadialErrorOverP": 1.8395665663935764e-06,
-          "maxAngleErrorRad": 0.0007915444178649977
+          "maxPositionErrorOverP": 0.0008794937011826865,
+          "rmsPositionErrorOverP": 0.0005615874740967342,
+          "maxRadialErrorOverP": 1.8395665686436284e-06,
+          "maxAngleErrorRad": 0.0007915444177726272
         },
         {
           "angleRule": "right-endpoint",
@@ -411,10 +411,10 @@
           "maxEnergyRelative": 3.1882927925733116e-10,
           "minR": 109.09090909090908,
           "maxR": 133.33333190973448,
-          "maxPositionErrorOverP": 0.0004388169169671141,
-          "rmsPositionErrorOverP": 0.00028058265133271447,
-          "maxRadialErrorOverP": 4.5989125171767377e-07,
-          "maxAngleErrorRad": 0.0003949352549454943
+          "maxPositionErrorOverP": 0.00043881691686448545,
+          "rmsPositionErrorOverP": 0.00028058265132370464,
+          "maxRadialErrorOverP": 4.598912539677258e-07,
+          "maxAngleErrorRad": 0.00039493525485312375
         },
         {
           "angleRule": "right-endpoint",
@@ -423,10 +423,10 @@
           "maxEnergyRelative": 7.970749316108176e-11,
           "minR": 109.09090909090908,
           "maxR": 133.33333299386763,
-          "maxPositionErrorOverP": 0.00021917596568921607,
-          "rmsPositionErrorOverP": 0.00014023867955583917,
-          "maxRadialErrorOverP": 1.1497278885978327e-07,
-          "maxAngleErrorRad": 0.00019725838225070902
+          "maxPositionErrorOverP": 0.00021917596558649214,
+          "rmsPositionErrorOverP": 0.00014023867954683105,
+          "maxRadialErrorOverP": 1.1497279110983527e-07,
+          "maxAngleErrorRad": 0.00019725838215833846
         },
         {
           "angleRule": "right-endpoint",
@@ -435,10 +435,10 @@
           "maxEnergyRelative": 1.9927017745894585e-11,
           "minR": 109.09090909090908,
           "maxR": 133.3333332474556,
-          "maxPositionErrorOverP": 0.00010952985855949343,
-          "rmsPositionErrorOverP": 7.010619402382714e-05,
-          "maxRadialErrorOverP": 2.8743189043704358e-08,
-          "maxAngleErrorRad": 9.857687905423518e-05
+          "maxPositionErrorOverP": 0.00010952985845686477,
+          "rmsPositionErrorOverP": 7.010619401481937e-05,
+          "maxRadialErrorOverP": 2.8743191293756353e-08,
+          "maxAngleErrorRad": 9.857687896186462e-05
         },
         {
           "angleRule": "trapezoid",
@@ -447,10 +447,10 @@
           "maxEnergyRelative": 1.2753166547713274e-09,
           "minR": 109.09090909090908,
           "maxR": 133.333327849529,
-          "maxPositionErrorOverP": 4.770117992008062e-06,
-          "rmsPositionErrorOverP": 1.9833547652374467e-06,
-          "maxRadialErrorOverP": 1.8395665663935764e-06,
-          "maxAngleErrorRad": 5.243805425436676e-06
+          "maxPositionErrorOverP": 4.7701180177531714e-06,
+          "rmsPositionErrorOverP": 1.983354759095361e-06,
+          "maxRadialErrorOverP": 1.8395665686436284e-06,
+          "maxAngleErrorRad": 5.243805453858386e-06
         },
         {
           "angleRule": "trapezoid",
@@ -459,10 +459,10 @@
           "maxEnergyRelative": 3.1882927925733116e-10,
           "minR": 109.09090909090908,
           "maxR": 133.33333190973448,
-          "maxPositionErrorOverP": 1.1925292307006762e-06,
-          "rmsPositionErrorOverP": 4.958382708729187e-07,
-          "maxRadialErrorOverP": 4.5989125171767377e-07,
-          "maxAngleErrorRad": 1.3109510064168717e-06
+          "maxPositionErrorOverP": 1.192529256549061e-06,
+          "rmsPositionErrorOverP": 4.958382647316063e-07,
+          "maxRadialErrorOverP": 4.598912539677258e-07,
+          "maxAngleErrorRad": 1.3109510348385811e-06
         },
         {
           "angleRule": "trapezoid",
@@ -471,10 +471,10 @@
           "maxEnergyRelative": 7.970749316108176e-11,
           "minR": 109.09090909090908,
           "maxR": 133.33333299386763,
-          "maxPositionErrorOverP": 2.981325705958673e-07,
-          "rmsPositionErrorOverP": 1.2395952777064186e-07,
-          "maxRadialErrorOverP": 1.1497278885978327e-07,
-          "maxAngleErrorRad": 3.277380358213122e-07
+          "maxPositionErrorOverP": 2.98132596444252e-07,
+          "rmsPositionErrorOverP": 1.2395952162898858e-07,
+          "maxRadialErrorOverP": 1.1497279110983527e-07,
+          "maxAngleErrorRad": 3.2773806424302165e-07
         },
         {
           "angleRule": "trapezoid",
@@ -483,10 +483,10 @@
           "maxEnergyRelative": 1.9927017745894585e-11,
           "minR": 109.09090909090908,
           "maxR": 133.3333332474556,
-          "maxPositionErrorOverP": 7.453296893419577e-08,
-          "rmsPositionErrorOverP": 3.098987658929238e-08,
-          "maxRadialErrorOverP": 2.8743189043704358e-08,
-          "maxAngleErrorRad": 8.19343171087894e-08
+          "maxPositionErrorOverP": 7.453299478258046e-08,
+          "rmsPositionErrorOverP": 3.098987044860114e-08,
+          "maxRadialErrorOverP": 2.8743191293756353e-08,
+          "maxAngleErrorRad": 8.193434553049883e-08
         }
       ]
     },
@@ -501,12 +501,12 @@
       "E2": 0.9637334608640205,
       "period": 4564.198794780983,
       "exactPrecessionRad": 0.9735245683755238,
-      "referenceRefinementMaxPositionOverP": 8.581045709115245e-14,
+      "referenceRefinementMaxPositionOverP": 1.1594990774148257e-13,
       "sampleCount": 4215,
       "duration": 27386.666666666664,
       "orders": {
-        "right-endpoint": 1.0009573772399094,
-        "trapezoid": 2.000000942180588
+        "right-endpoint": 1.0009573772100318,
+        "trapezoid": 2.0000007983773913
       },
       "runs": [
         {
@@ -516,10 +516,10 @@
           "maxEnergyRelative": 1.7899997965875902e-08,
           "minR": 92.3076923076923,
           "maxR": 171.4284877377797,
-          "maxPositionErrorOverP": 0.0033922638348008642,
-          "rmsPositionErrorOverP": 0.0023284962462822114,
-          "maxRadialErrorOverP": 1.0306684814764821e-05,
-          "maxAngleErrorRad": 0.0023745857733104003
+          "maxPositionErrorOverP": 0.0033922638348312275,
+          "rmsPositionErrorOverP": 0.00232849624629502,
+          "maxRadialErrorOverP": 1.030668486035798e-05,
+          "maxAngleErrorRad": 0.0023745857733317166
         },
         {
           "angleRule": "right-endpoint",
@@ -528,10 +528,10 @@
           "maxEnergyRelative": 4.474995574661646e-09,
           "minR": 92.3076923076923,
           "maxR": 171.4285505203855,
-          "maxPositionErrorOverP": 0.001694176776345429,
-          "rmsPositionErrorOverP": 0.0011641786048721633,
-          "maxRadialErrorOverP": 2.5766655962655706e-06,
-          "maxAngleErrorRad": 0.0011859238802500727
+          "maxPositionErrorOverP": 0.001694176776375888,
+          "rmsPositionErrorOverP": 0.0011641786048849146,
+          "maxRadialErrorOverP": 2.5766656418587292e-06,
+          "maxAngleErrorRad": 0.001185923880271389
         },
         {
           "angleRule": "right-endpoint",
@@ -540,10 +540,10 @@
           "maxEnergyRelative": 1.1187488072652499e-09,
           "minR": 92.3076923076923,
           "maxR": 171.42856619329584,
-          "maxPositionErrorOverP": 0.0008465994634169072,
-          "rmsPositionErrorOverP": 0.0005820728746144922,
-          "maxRadialErrorOverP": 6.441660752661467e-07,
-          "maxAngleErrorRad": 0.0005926196419849816
+          "maxPositionErrorOverP": 0.0008465994634473658,
+          "rmsPositionErrorOverP": 0.0005820728746272142,
+          "maxRadialErrorOverP": 6.441661208593056e-07,
+          "maxAngleErrorRad": 0.0005926196420062979
         },
         {
           "angleRule": "right-endpoint",
@@ -552,10 +552,10 @@
           "maxEnergyRelative": 2.796875762170131e-10,
           "minR": 92.3076923076923,
           "maxR": 171.4285701156989,
-          "maxPositionErrorOverP": 0.00042317748289265485,
-          "rmsPositionErrorOverP": 0.00029103244921403396,
-          "maxRadialErrorOverP": 1.6104152097777084e-07,
-          "maxAngleErrorRad": 0.0002962242404791482
+          "maxPositionErrorOverP": 0.00042317748292311345,
+          "rmsPositionErrorOverP": 0.000291032449226741,
+          "maxRadialErrorOverP": 1.6104156657092973e-07,
+          "maxAngleErrorRad": 0.0002962242405004645
         },
         {
           "angleRule": "trapezoid",
@@ -564,10 +564,10 @@
           "maxEnergyRelative": 1.7899997965875902e-08,
           "minR": 92.3076923076923,
           "maxR": 171.4284877377797,
-          "maxPositionErrorOverP": 3.311040744216898e-05,
-          "rmsPositionErrorOverP": 1.031225634537979e-05,
-          "maxRadialErrorOverP": 1.0306684814764821e-05,
-          "maxAngleErrorRad": 4.3016227458281264e-05
+          "maxPositionErrorOverP": 3.3110407606366675e-05,
+          "rmsPositionErrorOverP": 1.0312256371874414e-05,
+          "maxRadialErrorOverP": 1.030668486035798e-05,
+          "maxAngleErrorRad": 4.3016227671444085e-05
         },
         {
           "angleRule": "trapezoid",
@@ -576,10 +576,10 @@
           "maxEnergyRelative": 4.474995574661646e-09,
           "minR": 92.3076923076923,
           "maxR": 171.4285505203855,
-          "maxPositionErrorOverP": 8.277585749301927e-06,
-          "rmsPositionErrorOverP": 2.5780546760796527e-06,
-          "maxRadialErrorOverP": 2.5766655962655706e-06,
-          "maxAngleErrorRad": 1.0754035230320369e-05
+          "maxPositionErrorOverP": 8.277585913396675e-06,
+          "rmsPositionErrorOverP": 2.578054702574434e-06,
+          "maxRadialErrorOverP": 2.5766656418587292e-06,
+          "maxAngleErrorRad": 1.075403544348319e-05
         },
         {
           "angleRule": "trapezoid",
@@ -588,10 +588,10 @@
           "maxEnergyRelative": 1.1187488072652499e-09,
           "minR": 92.3076923076923,
           "maxR": 171.42856619329584,
-          "maxPositionErrorOverP": 2.06939506749559e-06,
-          "rmsPositionErrorOverP": 6.445130535115356e-07,
-          "maxRadialErrorOverP": 6.441660752661467e-07,
-          "maxAngleErrorRad": 2.6885069885906887e-06
+          "maxPositionErrorOverP": 2.0693952316418127e-06,
+          "rmsPositionErrorOverP": 6.445130800060021e-07,
+          "maxRadialErrorOverP": 6.441661208593056e-07,
+          "maxAngleErrorRad": 2.6885072017535094e-06
         },
         {
           "angleRule": "trapezoid",
@@ -600,10 +600,10 @@
           "maxEnergyRelative": 2.796875762170131e-10,
           "minR": 92.3076923076923,
           "maxR": 171.4285701156989,
-          "maxPositionErrorOverP": 5.173491042184783e-07,
-          "rmsPositionErrorOverP": 1.6112834740187833e-07,
-          "maxRadialErrorOverP": 1.6104152097777084e-07,
-          "maxAngleErrorRad": 6.721271645915294e-07
+          "maxPositionErrorOverP": 5.173492684161764e-07,
+          "rmsPositionErrorOverP": 1.6112837389616543e-07,
+          "maxRadialErrorOverP": 1.6104156657092973e-07,
+          "maxAngleErrorRad": 6.721273777543502e-07
         }
       ]
     },
@@ -618,12 +618,12 @@
       "E2": 0.9741602067183462,
       "period": 7578.768364550623,
       "exactPrecessionRad": 0.9780728878261611,
-      "referenceRefinementMaxPositionOverP": 3.101464454970469e-12,
+      "referenceRefinementMaxPositionOverP": 3.1066840100290566e-12,
       "sampleCount": 4199,
       "duration": 45474.0,
       "orders": {
-        "right-endpoint": 0.9998480650077872,
-        "trapezoid": 2.000002523023709
+        "right-endpoint": 0.9998480650056017,
+        "trapezoid": 2.000002530617131
       },
       "runs": [
         {
@@ -633,10 +633,10 @@
           "maxEnergyRelative": 1.4107268036503704e-07,
           "minR": 75,
           "maxR": 299.9988170043353,
-          "maxPositionErrorOverP": 0.01191840526704309,
-          "rmsPositionErrorOverP": 0.008801377190936757,
-          "maxRadialErrorOverP": 0.0002006327736135442,
-          "maxAngleErrorRad": 0.004767415006941
+          "maxPositionErrorOverP": 0.011918405267050933,
+          "rmsPositionErrorOverP": 0.008801377190942901,
+          "maxRadialErrorOverP": 0.00020063277356854314,
+          "maxAngleErrorRad": 0.004767415006944553
         },
         {
           "angleRule": "right-endpoint",
@@ -645,10 +645,10 @@
           "maxEnergyRelative": 3.52680630190832e-08,
           "minR": 75,
           "maxR": 299.9997043220738,
-          "maxPositionErrorOverP": 0.005960294250715811,
-          "rmsPositionErrorOverP": 0.004412529495513067,
-          "maxRadialErrorOverP": 5.0157893138328785e-05,
-          "maxAngleErrorRad": 0.0023841264072741453
+          "maxPositionErrorOverP": 0.005960294250723653,
+          "rmsPositionErrorOverP": 0.004412529495519075,
+          "maxRadialErrorOverP": 5.015789309332774e-05,
+          "maxAngleErrorRad": 0.002384126407277698
         },
         {
           "angleRule": "right-endpoint",
@@ -657,10 +657,10 @@
           "maxEnergyRelative": 8.817009515067087e-09,
           "minR": 75,
           "maxR": 299.9999260656701,
-          "maxPositionErrorOverP": 0.0029804202740820194,
-          "rmsPositionErrorOverP": 0.0022092780463017396,
-          "maxRadialErrorOverP": 1.2539455456561654e-05,
-          "maxAngleErrorRad": 0.0011921696456287378
+          "maxPositionErrorOverP": 0.0029804202740898633,
+          "rmsPositionErrorOverP": 0.002209278046307679,
+          "maxRadialErrorOverP": 1.2539455411560615e-05,
+          "maxAngleErrorRad": 0.0011921696456318465
         },
         {
           "angleRule": "right-endpoint",
@@ -669,10 +669,10 @@
           "maxEnergyRelative": 2.2042520938487938e-09,
           "minR": 75,
           "maxR": 299.9999815201727,
-          "maxPositionErrorOverP": 0.0014902782066740872,
-          "rmsPositionErrorOverP": 0.0011053989494779284,
-          "maxRadialErrorOverP": 3.1348627446211214e-06,
-          "maxAngleErrorRad": 0.0005961115834094421
+          "maxPositionErrorOverP": 0.0014902782066819307,
+          "rmsPositionErrorOverP": 0.0011053989494838356,
+          "maxRadialErrorOverP": 3.1348626996200816e-06,
+          "maxAngleErrorRad": 0.0005961115834125508
         },
         {
           "angleRule": "trapezoid",
@@ -681,10 +681,10 @@
           "maxEnergyRelative": 1.4107268036503704e-07,
           "minR": 75,
           "maxR": 299.9988170043353,
-          "maxPositionErrorOverP": 0.000593694170010317,
-          "rmsPositionErrorOverP": 0.00015179130936046818,
-          "maxRadialErrorOverP": 0.0002006327736135442,
-          "maxAngleErrorRad": 0.0009498221664401285
+          "maxPositionErrorOverP": 0.000593694169854854,
+          "rmsPositionErrorOverP": 0.00015179130937437675,
+          "maxRadialErrorOverP": 0.00020063277356854314,
+          "maxAngleErrorRad": 0.0009498221661914386
         },
         {
           "angleRule": "trapezoid",
@@ -693,10 +693,10 @@
           "maxEnergyRelative": 3.52680630190832e-08,
           "minR": 75,
           "maxR": 299.9997043220738,
-          "maxPositionErrorOverP": 0.0001484229091608147,
-          "rmsPositionErrorOverP": 3.7947100537690424e-05,
-          "maxRadialErrorOverP": 5.0157893138328785e-05,
-          "maxAngleErrorRad": 0.00023745382203088639
+          "maxPositionErrorOverP": 0.00014842290900535154,
+          "rmsPositionErrorOverP": 3.794710055159976e-05,
+          "maxRadialErrorOverP": 5.015789309332774e-05,
+          "maxAngleErrorRad": 0.00023745382178219643
         },
         {
           "angleRule": "trapezoid",
@@ -705,10 +705,10 @@
           "maxEnergyRelative": 8.817009515067087e-09,
           "minR": 75,
           "maxR": 299.9999260656701,
-          "maxPositionErrorOverP": 3.7105690362575156e-05,
-          "rmsPositionErrorOverP": 9.486730570412203e-06,
-          "maxRadialErrorOverP": 1.2539455456561654e-05,
-          "maxAngleErrorRad": 5.9363351908814366e-05
+          "maxPositionErrorOverP": 3.710569020711201e-05,
+          "rmsPositionErrorOverP": 9.486730584321676e-06,
+          "maxRadialErrorOverP": 1.2539455411560615e-05,
+          "maxAngleErrorRad": 5.936335166012441e-05
         },
         {
           "angleRule": "trapezoid",
@@ -717,10 +717,10 @@
           "maxEnergyRelative": 2.2042520938487938e-09,
           "minR": 75,
           "maxR": 299.9999815201727,
-          "maxPositionErrorOverP": 9.27642040739668e-06,
-          "rmsPositionErrorOverP": 2.371680061011149e-06,
-          "maxRadialErrorOverP": 3.1348627446211214e-06,
-          "maxAngleErrorRad": 1.484083738745312e-05
+          "maxPositionErrorOverP": 9.276420251933532e-06,
+          "rmsPositionErrorOverP": 2.371680074920361e-06,
+          "maxRadialErrorOverP": 3.1348626996200816e-06,
+          "maxAngleErrorRad": 1.4840837138763163e-05
         }
       ]
     },
@@ -735,12 +735,12 @@
       "E2": 0.9265850945494994,
       "period": 3240.93048371596,
       "exactPrecessionRad": 2.60443289608323,
-      "referenceRefinementMaxPositionOverP": 1.5107849650114838e-13,
+      "referenceRefinementMaxPositionOverP": 9.476371680315863e-14,
       "sampleCount": 4489,
       "duration": 19445.833333333332,
       "orders": {
-        "right-endpoint": 1.0022253550980273,
-        "trapezoid": 2.000000374635821
+        "right-endpoint": 1.0022253556070366,
+        "trapezoid": 1.9999998200913776
       },
       "runs": [
         {
@@ -750,10 +750,10 @@
           "maxEnergyRelative": 3.1200691224986216e-09,
           "minR": 109.09090909090908,
           "maxR": 133.33332602645888,
-          "maxPositionErrorOverP": 0.001345388582429434,
-          "rmsPositionErrorOverP": 0.0008555340715016591,
-          "maxRadialErrorOverP": 2.8238272841226337e-06,
-          "maxAngleErrorRad": 0.0012108506149317577
+          "maxPositionErrorOverP": 0.001345388582224155,
+          "rmsPositionErrorOverP": 0.0008555340714535869,
+          "maxRadialErrorOverP": 2.8238272776093256e-06,
+          "maxAngleErrorRad": 0.0012108506147470166
         },
         {
           "angleRule": "right-endpoint",
@@ -762,10 +762,10 @@
           "maxEnergyRelative": 7.800173105793522e-10,
           "minR": 109.09090909090908,
           "maxR": 133.3333314723748,
-          "maxPositionErrorOverP": 0.0006708941405010156,
-          "rmsPositionErrorOverP": 0.0004273504913607257,
-          "maxRadialErrorOverP": 7.059558921440612e-07,
-          "maxAngleErrorRad": 0.0006038051328758343
+          "maxPositionErrorOverP": 0.0006708941402957366,
+          "rmsPositionErrorOverP": 0.0004273504913126329,
+          "maxRadialErrorOverP": 7.059558856307528e-07,
+          "maxAngleErrorRad": 0.0006038051326910931
         },
         {
           "angleRule": "right-endpoint",
@@ -774,10 +774,10 @@
           "maxEnergyRelative": 1.950043575995349e-10,
           "minR": 109.09090909090908,
           "maxR": 133.33333283320022,
-          "maxPositionErrorOverP": 0.00033499701565563745,
-          "rmsPositionErrorOverP": 0.00021357137571900844,
-          "maxRadialErrorOverP": 1.7648891426820985e-07,
-          "maxAngleErrorRad": 0.0003014975123392105
+          "maxPositionErrorOverP": 0.0003349970154503584,
+          "rmsPositionErrorOverP": 0.00021357137567090526,
+          "maxRadialErrorOverP": 1.7648890775490146e-07,
+          "maxAngleErrorRad": 0.0003014975121544694
         },
         {
           "angleRule": "right-endpoint",
@@ -786,10 +786,10 @@
           "maxEnergyRelative": 4.875114930927743e-11,
           "minR": 109.09090909090908,
           "maxR": 133.33333317336744,
-          "maxPositionErrorOverP": 0.00016738599194590328,
-          "rmsPositionErrorOverP": 0.00010675975366861428,
-          "maxRadialErrorOverP": 4.4122211306785176e-08,
-          "maxAngleErrorRad": 0.0001506474912247313
+          "maxPositionErrorOverP": 0.0001673859917406243,
+          "rmsPositionErrorOverP": 0.00010675975362050606,
+          "maxRadialErrorOverP": 4.412220479347676e-08,
+          "maxAngleErrorRad": 0.0001506474910399902
         },
         {
           "angleRule": "trapezoid",
@@ -798,10 +798,10 @@
           "maxEnergyRelative": 3.1200691224986216e-09,
           "minR": 109.09090909090908,
           "maxR": 133.33332602645888,
-          "maxPositionErrorOverP": 8.781721301388356e-06,
-          "rmsPositionErrorOverP": 3.6393965657476632e-06,
-          "maxRadialErrorOverP": 2.8238272841226337e-06,
-          "maxAngleErrorRad": 9.655302406486044e-06
+          "maxPositionErrorOverP": 8.781721469324934e-06,
+          "rmsPositionErrorOverP": 3.6393965533372368e-06,
+          "maxRadialErrorOverP": 2.8238272776093256e-06,
+          "maxAngleErrorRad": 9.655302591227155e-06
         },
         {
           "angleRule": "trapezoid",
@@ -810,10 +810,10 @@
           "maxEnergyRelative": 7.800173105793522e-10,
           "minR": 109.09090909090908,
           "maxR": 133.3333314723748,
-          "maxPositionErrorOverP": 2.195428922636485e-06,
-          "rmsPositionErrorOverP": 9.098480153743964e-07,
-          "maxRadialErrorOverP": 7.059558921440612e-07,
-          "maxAngleErrorRad": 2.413823899871659e-06
+          "maxPositionErrorOverP": 2.19542909057306e-06,
+          "rmsPositionErrorOverP": 9.098480029639582e-07,
+          "maxRadialErrorOverP": 7.059558856307528e-07,
+          "maxAngleErrorRad": 2.41382408461277e-06
         },
         {
           "angleRule": "trapezoid",
@@ -822,10 +822,10 @@
           "maxEnergyRelative": 1.950043575995349e-10,
           "minR": 109.09090909090908,
           "maxR": 133.33333283320022,
-          "maxPositionErrorOverP": 5.488572381520808e-07,
-          "rmsPositionErrorOverP": 2.2746194235971205e-07,
-          "maxRadialErrorOverP": 1.7648891426820985e-07,
-          "maxAngleErrorRad": 6.034559802969852e-07
+          "maxPositionErrorOverP": 5.488574060886553e-07,
+          "rmsPositionErrorOverP": 2.2746192994837788e-07,
+          "maxRadialErrorOverP": 1.7648890775490146e-07,
+          "maxAngleErrorRad": 6.034561650380965e-07
         },
         {
           "angleRule": "trapezoid",
@@ -834,10 +834,10 @@
           "maxEnergyRelative": 4.875114930927743e-11,
           "minR": 109.09090909090908,
           "maxR": 133.33333317336744,
-          "maxPositionErrorOverP": 1.372142759380749e-07,
-          "rmsPositionErrorOverP": 5.686547446907965e-08,
-          "maxRadialErrorOverP": 4.4122211306785176e-08,
-          "maxAngleErrorRad": 1.5086397553432107e-07
+          "maxPositionErrorOverP": 1.372144438746489e-07,
+          "rmsPositionErrorOverP": 5.686546205787096e-08,
+          "maxRadialErrorOverP": 4.412220479347676e-08,
+          "maxAngleErrorRad": 1.5086416027543237e-07
         }
       ]
     },
@@ -852,12 +852,12 @@
       "E2": 0.9319117096894874,
       "period": 3618.6361255642005,
       "exactPrecessionRad": 2.6193331251832603,
-      "referenceRefinementMaxPositionOverP": 1.1133347883986812e-13,
+      "referenceRefinementMaxPositionOverP": 2.992403254439903e-13,
       "sampleCount": 5012,
       "duration": 21712.166666666664,
       "orders": {
-        "right-endpoint": 1.0014885243421638,
-        "trapezoid": 2.0000012691425417
+        "right-endpoint": 1.0014885241927807,
+        "trapezoid": 2.0000013638242926
       },
       "runs": [
         {
@@ -867,10 +867,10 @@
           "maxEnergyRelative": 4.036476518026278e-08,
           "minR": 92.3076923076923,
           "maxR": 171.42846759368788,
-          "maxPositionErrorOverP": 0.005203362223772609,
-          "rmsPositionErrorOverP": 0.0035408012026715333,
-          "maxRadialErrorOverP": 1.3615989457941661e-05,
-          "maxAngleErrorRad": 0.0036423568246632954
+          "maxPositionErrorOverP": 0.00520336222400602,
+          "rmsPositionErrorOverP": 0.003540801202731745,
+          "maxRadialErrorOverP": 1.3615989449059877e-05,
+          "maxAngleErrorRad": 0.00364235682482672
         },
         {
           "angleRule": "right-endpoint",
@@ -879,10 +879,10 @@
           "maxEnergyRelative": 1.0091180632579144e-08,
           "minR": 92.3076923076923,
           "maxR": 171.42854565341497,
-          "maxPositionErrorOverP": 0.0025970210276563006,
-          "rmsPositionErrorOverP": 0.001769683805926247,
-          "maxRadialErrorOverP": 3.403988323924523e-06,
-          "maxAngleErrorRad": 0.0018179152017623323
+          "maxPositionErrorOverP": 0.002597021027889712,
+          "rmsPositionErrorOverP": 0.0017696838059865104,
+          "maxRadialErrorOverP": 3.4039883150427387e-06,
+          "maxAngleErrorRad": 0.0018179152019257572
         },
         {
           "angleRule": "right-endpoint",
@@ -891,10 +891,10 @@
           "maxEnergyRelative": 2.522794473124701e-09,
           "minR": 92.3076923076923,
           "maxR": 171.42856496913646,
-          "maxPositionErrorOverP": 0.0012973451615872237,
-          "rmsPositionErrorOverP": 0.0008846640611002652,
-          "maxRadialErrorOverP": 8.509964745921176e-07,
-          "maxAngleErrorRad": 0.0009081417110508028
+          "maxPositionErrorOverP": 0.001297345161820635,
+          "rmsPositionErrorOverP": 0.0008846640611605555,
+          "maxRadialErrorOverP": 8.509964657103334e-07,
+          "maxAngleErrorRad": 0.0009081417112142276
         },
         {
           "angleRule": "right-endpoint",
@@ -903,10 +903,10 @@
           "maxEnergyRelative": 6.306991841673328e-10,
           "minR": 92.3076923076923,
           "maxR": 171.42856981685736,
-          "maxPositionErrorOverP": 0.0006483812027771912,
-          "rmsPositionErrorOverP": 0.00044228774020795784,
-          "maxRadialErrorOverP": 2.1274912723375413e-07,
-          "maxAngleErrorRad": 0.00045386687304471707
+          "maxPositionErrorOverP": 0.0006483812030106025,
+          "rmsPositionErrorOverP": 0.0004422877402682607,
+          "maxRadialErrorOverP": 2.1274911835196993e-07,
+          "maxAngleErrorRad": 0.0004538668732081419
         },
         {
           "angleRule": "trapezoid",
@@ -915,10 +915,10 @@
           "maxEnergyRelative": 4.036476518026278e-08,
           "minR": 92.3076923076923,
           "maxR": 171.42846759368788,
-          "maxPositionErrorOverP": 5.024713338671742e-05,
-          "rmsPositionErrorOverP": 1.5872569658000177e-05,
-          "maxRadialErrorOverP": 1.3615989457941661e-05,
-          "maxAngleErrorRad": 6.52778759970829e-05
+          "maxPositionErrorOverP": 5.0247133222656365e-05,
+          "rmsPositionErrorOverP": 1.587256964537479e-05,
+          "maxRadialErrorOverP": 1.3615989449059877e-05,
+          "maxAngleErrorRad": 6.527787578392008e-05
         },
         {
           "angleRule": "trapezoid",
@@ -927,10 +927,10 @@
           "maxEnergyRelative": 1.0091180632579144e-08,
           "minR": 92.3076923076923,
           "maxR": 171.42854565341497,
-          "maxPositionErrorOverP": 1.256175567727132e-05,
-          "rmsPositionErrorOverP": 3.968125987238962e-06,
-          "maxRadialErrorOverP": 3.403988323924523e-06,
-          "maxAngleErrorRad": 1.6319436120681985e-05
+          "maxPositionErrorOverP": 1.2561755513210203e-05,
+          "rmsPositionErrorOverP": 3.968125974614736e-06,
+          "maxRadialErrorOverP": 3.4039883150427387e-06,
+          "maxAngleErrorRad": 1.6319435907519164e-05
         },
         {
           "angleRule": "trapezoid",
@@ -939,10 +939,10 @@
           "maxEnergyRelative": 2.522794473124701e-09,
           "minR": 92.3076923076923,
           "maxR": 171.42856496913646,
-          "maxPositionErrorOverP": 3.1404368131562586e-06,
-          "rmsPositionErrorOverP": 9.920304333337195e-07,
-          "maxRadialErrorOverP": 8.509964745921176e-07,
-          "maxAngleErrorRad": 4.079856473993004e-06
+          "maxPositionErrorOverP": 3.140436649095123e-06,
+          "rmsPositionErrorOverP": 9.920304207093232e-07,
+          "maxRadialErrorOverP": 8.509964657103334e-07,
+          "maxAngleErrorRad": 4.079856260830184e-06
         },
         {
           "angleRule": "trapezoid",
@@ -951,10 +951,10 @@
           "maxEnergyRelative": 6.306991841673328e-10,
           "minR": 92.3076923076923,
           "maxR": 171.42856981685736,
-          "maxPositionErrorOverP": 7.85109332469012e-07,
-          "rmsPositionErrorOverP": 2.4800755911898414e-07,
-          "maxRadialErrorOverP": 2.1274912723375413e-07,
-          "maxAngleErrorRad": 1.019964308568433e-06
+          "maxPositionErrorOverP": 7.851091684078718e-07,
+          "rmsPositionErrorOverP": 2.4800754649433595e-07,
+          "maxRadialErrorOverP": 2.1274911835196993e-07,
+          "maxAngleErrorRad": 1.0199640954056122e-06
         }
       ]
     },
@@ -967,14 +967,14 @@
       "ra": 300,
       "L": 40.8248290463863,
       "E2": 0.9506172839506173,
-      "period": 5807.328760203241,
+      "period": 5807.32876020324,
       "exactPrecessionRad": 2.6707229865695066,
-      "referenceRefinementMaxPositionOverP": 1.1625390116487916e-12,
+      "referenceRefinementMaxPositionOverP": 1.3850544916039114e-12,
       "sampleCount": 5362,
       "duration": 34844.33333333333,
       "orders": {
-        "right-endpoint": 0.9999762271754239,
-        "trapezoid": 2.0000019746584194
+        "right-endpoint": 0.9999762271762646,
+        "trapezoid": 2.0000019877201685
       },
       "runs": [
         {
@@ -984,10 +984,10 @@
           "maxEnergyRelative": 2.787808952518014e-07,
           "minR": 75,
           "maxR": 299.9987743691137,
-          "maxPositionErrorOverP": 0.018426818435596567,
-          "rmsPositionErrorOverP": 0.013508164197413807,
-          "maxRadialErrorOverP": 0.0001943434379937751,
-          "maxAngleErrorRad": 0.007370795117744855
+          "maxPositionErrorOverP": 0.018426818435594496,
+          "rmsPositionErrorOverP": 0.013508164197518331,
+          "maxRadialErrorOverP": 0.00019434343793586588,
+          "maxAngleErrorRad": 0.007370795117743079
         },
         {
           "angleRule": "right-endpoint",
@@ -996,10 +996,10 @@
           "maxEnergyRelative": 6.969502013172262e-08,
           "minR": 75,
           "maxR": 299.99969333728956,
-          "maxPositionErrorOverP": 0.00921367592692728,
-          "rmsPositionErrorOverP": 0.006763596647205448,
-          "maxRadialErrorOverP": 4.858558318936446e-05,
-          "maxAngleErrorRad": 0.003685482058694234
+          "maxPositionErrorOverP": 0.009213675926922911,
+          "rmsPositionErrorOverP": 0.006763596647309865,
+          "maxRadialErrorOverP": 4.858558313145522e-05,
+          "maxAngleErrorRad": 0.0036854820586924575
         },
         {
           "angleRule": "right-endpoint",
@@ -1008,10 +1008,10 @@
           "maxEnergyRelative": 1.742374268242043e-08,
           "minR": 75,
           "maxR": 299.999923385507,
-          "maxPositionErrorOverP": 0.004606903800134769,
-          "rmsPositionErrorOverP": 0.003384219626669285,
-          "maxRadialErrorOverP": 1.214637830742049e-05,
-          "maxAngleErrorRad": 0.0018427636864304375
+          "maxPositionErrorOverP": 0.004606903800130398,
+          "rmsPositionErrorOverP": 0.003384219626773646,
+          "maxRadialErrorOverP": 1.2146378249511259e-05,
+          "maxAngleErrorRad": 0.0018427636864295494
         },
         {
           "angleRule": "right-endpoint",
@@ -1020,10 +1020,10 @@
           "maxEnergyRelative": 4.3559358457896495e-09,
           "minR": 75,
           "maxR": 299.99998085100947,
-          "maxPositionErrorOverP": 0.0023034678509386572,
-          "rmsPositionErrorOverP": 0.0016927204578606166,
-          "maxRadialErrorOverP": 3.036593997881217e-06,
-          "maxAngleErrorRad": 0.0009213876612808036
+          "maxPositionErrorOverP": 0.0023034678509342857,
+          "rmsPositionErrorOverP": 0.0016927204579649485,
+          "maxRadialErrorOverP": 3.036593939971984e-06,
+          "maxAngleErrorRad": 0.0009213876612799154
         },
         {
           "angleRule": "trapezoid",
@@ -1032,10 +1032,10 @@
           "maxEnergyRelative": 2.787808952518014e-07,
           "minR": 75,
           "maxR": 299.9987743691137,
-          "maxPositionErrorOverP": 0.0006901604866426822,
-          "rmsPositionErrorOverP": 0.00016854790630368356,
-          "maxRadialErrorOverP": 0.0001943434379937751,
-          "maxAngleErrorRad": 0.001104179563789387
+          "maxPositionErrorOverP": 0.0006901604863318123,
+          "rmsPositionErrorOverP": 0.00016854790629850007,
+          "maxRadialErrorOverP": 0.00019434343793586588,
+          "maxAngleErrorRad": 0.001104179563292007
         },
         {
           "angleRule": "trapezoid",
@@ -1044,10 +1044,10 @@
           "maxEnergyRelative": 6.969502013172262e-08,
           "minR": 75,
           "maxR": 299.99969333728956,
-          "maxPositionErrorOverP": 0.00017253954603700013,
-          "rmsPositionErrorOverP": 4.213610340433762e-05,
-          "maxRadialErrorOverP": 4.858558318936446e-05,
-          "maxAngleErrorRad": 0.00027604335768671717
+          "maxPositionErrorOverP": 0.00017253954572613,
+          "rmsPositionErrorOverP": 4.2136103399155826e-05,
+          "maxRadialErrorOverP": 4.858558313145522e-05,
+          "maxAngleErrorRad": 0.00027604335718933726
         },
         {
           "angleRule": "trapezoid",
@@ -1056,10 +1056,10 @@
           "maxEnergyRelative": 1.742374268242043e-08,
           "minR": 75,
           "maxR": 299.999923385507,
-          "maxPositionErrorOverP": 4.3134849039625075e-05,
-          "rmsPositionErrorOverP": 1.0533970817884232e-05,
-          "maxRadialErrorOverP": 1.214637830742049e-05,
-          "maxAngleErrorRad": 6.90107411429608e-05
+          "maxPositionErrorOverP": 4.313484872875493e-05,
+          "rmsPositionErrorOverP": 1.0533970812703152e-05,
+          "maxRadialErrorOverP": 1.2146378249511259e-05,
+          "maxAngleErrorRad": 6.901074064558088e-05
         },
         {
           "angleRule": "trapezoid",
@@ -1068,10 +1068,10 @@
           "maxEnergyRelative": 4.3559358457896495e-09,
           "minR": 75,
           "maxR": 299.99998085100947,
-          "maxPositionErrorOverP": 1.078371152623474e-05,
-          "rmsPositionErrorOverP": 2.6334894232152e-06,
-          "maxRadialErrorOverP": 3.036593997881217e-06,
-          "maxAngleErrorRad": 1.7252681715262952e-05
+          "maxPositionErrorOverP": 1.0783711215364588e-05,
+          "rmsPositionErrorOverP": 2.6334894180343406e-06,
+          "maxRadialErrorOverP": 3.036593939971984e-06,
+          "maxAngleErrorRad": 1.7252681217883037e-05
         }
       ]
     }

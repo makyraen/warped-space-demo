@@ -18,7 +18,7 @@ For the archived data checks, run:
 node measurements/verify-results.mjs --data-only
 ```
 
-The numerical comparison covers nine bound orbits over approximately six radial periods. Current performance data were collected in headless Edge on a Windows PC with Intel integrated graphics. Round-average callback interval medians were 2.79–3.01 ms, while the largest pooled p95 was 17.33 ms. These are browser callback intervals, not GPU timings or a guarantee of uniform 60 Hz presentation.
+The numerical comparison covers nine bound orbits over approximately six radial periods. Current performance data were collected in headless Chrome on a Mac with an Apple M4 Max. Round-average callback interval medians were 1.40–1.45 ms, while the largest pooled p95 was 2.60 ms. These are browser callback intervals, not GPU timings or a guarantee of uniform 60 Hz presentation on other hardware.
 
 ## Model limits
 

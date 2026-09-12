@@ -9650,9 +9650,9 @@
     ]
   },
   "reproduction": {
-    "generatedAt": "2026-09-11T08:11:46.262Z",
+    "generatedAt": "2026-09-11T22:37:21.386Z",
     "physicsSha256": "b1ce102bbf11108a6863ca039807e237738ff108a1bdcded2332d3f25ec57c2c",
     "angularQuadrature": "trapezoid",
-    "browserChannel": "msedge"
+    "browserChannel": "chrome"
   }
 }

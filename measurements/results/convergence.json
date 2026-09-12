@@ -64,9 +64,9 @@
   "slopeEuler": 1.0007929382067051,
   "slopeLeapfrog": 1.9999981292361753,
   "reproduction": {
-    "generatedAt": "2026-09-11T08:11:48.212Z",
+    "generatedAt": "2026-09-11T22:37:22.928Z",
     "physicsSha256": "b1ce102bbf11108a6863ca039807e237738ff108a1bdcded2332d3f25ec57c2c",
     "angularQuadrature": "trapezoid",
-    "browserChannel": "msedge"
+    "browserChannel": "chrome"
   }
 }
