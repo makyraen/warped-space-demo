@@ -29,13 +29,13 @@ fig.savefig(ROOT/'figure/fig5_orbit_gr_vs_newton.png');fig.savefig(ROOT/'figure/
 
 perf=json.loads((DATA/'performance-current.json').read_text(encoding='utf-8'))
 fig,axes=plt.subplots(1,2,figsize=(9.8,3.9),layout='constrained')
-for model,color in [('RUBBER','#b65243'),('FLAMM','#167a9b')]:
+for model,color,name in [('RUBBER','#b65243','Newtonian'),('FLAMM','#167a9b','Schwarzschild')]:
     rows=sorted([r for r in perf['rows'] if r['model']==model],key=lambda r:r['count'])
     x=np.array([r['count'] for r in rows])
     mean=np.array([r['medianOfRoundMeansMs'] for r in rows])
     lo=np.array([r['minimumRoundMeanMs'] for r in rows]);hi=np.array([r['maximumRoundMeanMs'] for r in rows])
-    axes[0].errorbar(x,mean,yerr=[mean-lo,hi-mean],fmt='o-',capsize=4,color=color,label=model)
-    axes[1].plot(x,[r['pooledP95FrameMs'] for r in rows],'o-',color=color,label=model)
+    axes[0].errorbar(x,mean,yerr=[mean-lo,hi-mean],fmt='o-',capsize=4,color=color,label=name)
+    axes[1].plot(x,[r['pooledP95FrameMs'] for r in rows],'o-',color=color,label=name)
 axes[0].set(xlabel='Number of masses',ylabel='Callback interval (ms)',title='(a) Median of round means; range')
 axes[1].set(xlabel='Number of masses',ylabel='Callback interval (ms)',title='(b) Pooled 95th percentile')
 axes[1].axhline(1000/60,color='#555555',ls='--',lw=1,label='60 Hz interval')

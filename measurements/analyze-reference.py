@@ -61,7 +61,7 @@ result={'meta':{**data['meta'],'reference':'Darwin anomaly DOP853 in proper time
 plt.rcParams.update({'font.size':10,'axes.spines.top':False,'axes.spines.right':False,'savefig.dpi':220})
 fig,axes=plt.subplots(1,2,figsize=(10.4,4.0),layout='constrained')
 colors={'right-endpoint':'#ba493f','trapezoid':'#167a9b'}
-labels={'right-endpoint':'Previous angle update','trapezoid':'Trapezoidal angle update'}
+labels={'right-endpoint':'Right-endpoint angle update','trapezoid':'Trapezoidal angle update'}
 for method in colors:
     for c in summary:
         rr=[r for r in c['runs'] if r['angleRule']==method]
