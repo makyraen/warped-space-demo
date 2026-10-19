@@ -37,7 +37,7 @@ function buildFig1() {
 
     let g = '';
     g += box(295, 20, 310, 66, 'User Input',
-        ['place mass (press & hold) · toggle model (C)', 'switch view (V) · presets (1–5) · placement (R)'], '#eef3fb', '#7f96bb');
+        ['place mass (press & hold) · toggle model (C)', 'switch view (V) · presets (1~5) · placement (R)'], '#eef3fb', '#7f96bb');
     g += arrow(450, 86, 450, 116);
     g += box(280, 118, 340, 66, 'State',
         ['mass array { position, mass, growth }  (max 5)', 'model flag:  Newtonian | Schwarzschild'], '#eef3fb', '#7f96bb');
