@@ -37,10 +37,10 @@ function buildFig1() {
 
     let g = '';
     g += box(295, 20, 310, 66, 'User Input',
-        ['place mass (press & drag) · toggle model (C)', 'switch view (V) · observer move (WASD)'], '#eef3fb', '#7f96bb');
+        ['place mass (press & hold) · toggle model (C)', 'switch view (V) · presets (1–5) · reset (R)'], '#eef3fb', '#7f96bb');
     g += arrow(450, 86, 450, 116);
     g += box(280, 118, 340, 66, 'State',
-        ['mass array { position, mass, growth }  (max 5)', 'model flag:  rubber-sheet | Flamm'], '#eef3fb', '#7f96bb');
+        ['mass array { position, mass, growth }  (max 5)', 'model flag:  Newtonian | Schwarzschild'], '#eef3fb', '#7f96bb');
 
     g += arrow(450, 184, 450, 206);
     g += `<line x1="215" y1="206" x2="685" y2="206" stroke="#5b6b86" stroke-width="1.6"/>`;
@@ -48,17 +48,17 @@ function buildFig1() {
     g += arrow(685, 206, 685, 240);
 
     g += box(55, 242, 320, 100, 'Surface Depth',
-        ['rubber:  z = −K·m / √(r²+ε²)',
-         'Flamm:  z = √(8M(r−2M)),  r ∈ [2M, R₀]',
-         'multi-mass: linear superposition'], '#fdf1e6', '#d09a63');
+        ['Newtonian:  z = −K·m / √(r²+ε²), summed',
+         'Schwarzschild:  z = √(8M(r−2M)),  r ∈ [2M, R₀]',
+         'Schwarzschild: central mass only'], '#fdf1e6', '#d09a63');
     g += box(525, 242, 320, 100, 'Motion Integrator',
-        ['fixed-step leapfrog  (1/120 s)',
-         'rubber → Newtonian N-body',
-         'Flamm → Schwarzschild geodesic'], '#e9f6ee', '#6fae86');
+        ['fixed time step  (1/120 s)',
+         'Newtonian → Plummer-softened force, KDK',
+         'Schwarzschild → geodesic, KDK + trapezoidal φ'], '#e9f6ee', '#6fae86');
 
     g += arrow(215, 342, 215, 380);
     g += box(55, 382, 320, 78, 'GPU Vertex Shader',
-        ['200 × 200 grid displacement', 'depth → colour / intensity (non-saturating)'], '#fdf1e6', '#d09a63');
+        ['200 × 200 grid displacement', 'depth → color / intensity (non-saturating)'], '#fdf1e6', '#d09a63');
 
     g += arrow(685, 342, 685, 380);
     g += box(525, 382, 320, 78, 'Mass Position Update',
@@ -69,7 +69,7 @@ function buildFig1() {
     g += `<line x1="215" y1="498" x2="685" y2="498" stroke="#5b6b86" stroke-width="1.6"/>`;
     g += arrow(450, 498, 450, 526);
     g += box(295, 528, 310, 62, 'Rendering',
-        ['Three.js · bloom post-processing', 'god view / first-person observer'], '#eef3fb', '#7f96bb');
+        ['Three.js · bloom post-processing', 'full-scene view / first-person view'], '#eef3fb', '#7f96bb');
 
     // 두 갈래가 같은 기하학적 질량 M을 공유 (Flamm 모드에서 표면·운동의 정합성)
     g += `<path d="M 375 300 L 523 300" stroke="#b06a2c" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#ah2)"/>`;
