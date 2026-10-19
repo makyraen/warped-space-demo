@@ -10,7 +10,7 @@ DATA=ROOT/'measurements/results'
 plt.rcParams.update({'font.size':10,'axes.spines.top':False,'axes.spines.right':False,'savefig.dpi':220})
 energy=json.loads((DATA/'energy_drift.json').read_text(encoding='utf-8'))
 fig,ax=plt.subplots(figsize=(8,4),layout='constrained')
-for key,label,color,style in [('eulerFixed','Euler, fixed','#bb514b','-'),('leapfrogFixed','KDK, fixed','#167a9b','-'),('eulerJitter','Euler, jitter','#bb514b','--'),('leapfrogJitter','KDK, jitter','#167a9b','--')]:
+for key,label,color,style in [('eulerFixed','Semi-implicit Euler, fixed','#bb514b','-'),('leapfrogFixed','KDK, fixed','#167a9b','-'),('eulerJitter','Semi-implicit Euler, jitter','#bb514b','--'),('leapfrogJitter','KDK, jitter','#167a9b','--')]:
     s=energy[key]['series'];ax.semilogy([v['t'] for v in s],[max(v['rel'],1e-8) for v in s],label=label,color=color,ls=style,lw=1)
 ax.set(xlabel='Simulation time',ylabel='Absolute relative energy error',ylim=(1e-8,2e-2))
 ax.grid(alpha=.2,which='both');ax.legend(ncol=2,fontsize=8)
@@ -22,7 +22,7 @@ for radius in [100,200,300]:
     ax.add_patch(plt.Circle((0,0),radius,fill=False,color='#ccd2d9',lw=.7));ax.text(radius/np.sqrt(2),radius/np.sqrt(2),str(radius),fontsize=8,color='#77818b')
 for c in orbit['curves']:
     s=np.asarray(c['samples']);x=s[:,0]*np.cos(s[:,1]);y=s[:,0]*np.sin(s[:,1]);gr=c['includeGR']
-    ax.plot(x,y,color='#167a9b' if gr else '#b65243',ls='-' if gr else '--',lw=1.3,label='GR term included (4 periods)' if gr else 'GR term excluded (1 period)')
+    ax.plot(x,y,color='#167a9b' if gr else '#b65243',ls='-' if gr else '--',lw=1.3,label='Correction term included (4 periods)' if gr else 'Correction term excluded (1 period)')
 ax.scatter([0],[0],s=45,color='#253748',zorder=5)
 ax.set(aspect='equal',xlabel='x',ylabel='y');ax.grid(alpha=.1);ax.legend(fontsize=8,loc='upper left')
 fig.savefig(ROOT/'figure/fig5_orbit_gr_vs_newton.png');fig.savefig(ROOT/'figure/fig5_orbit_gr_vs_newton.svg');plt.close(fig)
