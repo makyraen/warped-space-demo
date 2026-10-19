@@ -1,9 +1,0 @@
-{
-  "name": "warped-space-measurements",
-  "private": true,
-  "type": "module",
-  "description": "Warped Space 수치 검증 및 성능 측정",
-  "devDependencies": {
-    "playwright": "1.62.1"
-  }
-}
