@@ -538,8 +538,8 @@ function updateGeodesicPhysics(deltaTime) {
     });
 }
 
-// opts로 무작위 요소를 고정할 수 있다(숫자 키 프리셋 전용). 넘기지 않으면 지금까지와 완전히 동일하게
-// 동작한다 — 드래그 스폰의 거동은 바꾸지 않는다.
+// opts로 무작위 요소를 고정하거나 성장 후 속도를 넣는다(프리셋·드래그 스폰). 넘기지 않으면 정지 상태로
+// 남는다 — 측정 스크립트는 이 경로로 만든 뒤 초기조건을 직접 설정한다.
 //   opts.lScale    : FLAMM 진입 시 L_circ에 곱할 각운동량 배율. 생략 시 initGeodesic이 무작위로 뽑는다
 //   opts.onSettled : growth가 끝나 settling이 풀린 직후 호출. RUBBER 속도는 반드시 여기서 넣어야 한다 —
 //                    settling 동안 updateNewtonianPhysics가 매 프레임 속도를 0으로 되돌리기 때문에
@@ -562,19 +562,13 @@ function createMass(pos, scale, mass, opts = {}) {
     mesh.position.set(pos.x, surfaceDepth(pos.x, pos.z), pos.z);  // 첫 프레임 깜빡임 방지(이후 매 프레임 갱신)
     mesh.userData = { isMass: true, massValue: mass };
     scene.add(mesh);
-    const initialVelocity = new THREE.Vector3();
-    if (state.masses.length > 0) {
-        const tangent = new THREE.Vector3(-pos.z, 0, pos.x).normalize();
-        const speed = (Math.random() * 20 + 10);
-        initialVelocity.copy(tangent).multiplyScalar(speed);
-    }
     // 질량을 즉시 등록하되 기여도(growth)를 0에서 키운다. 우물이 서서히 깊어지고 공은 매 프레임
     // restHeight를 따라 그 안으로 가라앉는다 — 선택된 곡면 표현이 질량 매개변수의
     // 변화에 따라 점진적으로 갱신되는 연출이다.
     // 예전에는 공을 y=0까지 떨어뜨린 뒤 착지 순간에 등록해서, 우물이 한 프레임 만에 생기며
     // 공이 바닥으로 순간이동했다("팍 닿는" 느낌). settling 동안은 N-body 적분을 멈춰 둔다.
     const obj = {
-        mesh: mesh, mass: mass, velocity: initialVelocity,
+        mesh: mesh, mass: mass, velocity: new THREE.Vector3(),
         growth: 0, settling: true,
         presetLScale: opts.lScale   // undefined면 initGeodesic이 지금까지대로 무작위로 뽑는다
     };
@@ -728,6 +722,25 @@ function circularizePreset() {
     });
 }
 
+// 드래그 스폰·무작위 배치용 onSettled. 예전에는 생성 시점에 화면 원점 기준 접선 속도(10~30)를
+// 줬지만 settling 동안 매 프레임 0으로 지워져, 놓은 질량이 정지 상태에서 중심을 향해 곧장 떨어져
+// 중심을 관통하는 직선 왕복만 했다. 성장이 끝난 뒤 중심 질량 기준 원궤도 속도의 80~100%를
+// 접선 방향으로 넣는다(circularizePreset과 같이 실제 합력에서 되짚는다).
+function launchOrbit(obj) {
+    const i = state.masses.indexOf(obj);
+    if(i <= 0) return;
+    const center = state.masses[0].mesh.position;
+    const dx = obj.mesh.position.x - center.x, dz = obj.mesh.position.z - center.z;
+    const r = Math.hypot(dx, dz);
+    if(r < 1) return;
+    const nx = dx / r, nz = dz / r;
+    const { ax, az } = computeAcceleration(i);
+    const aRadial = -(ax * nx + az * nz);
+    if(aRadial <= 0) return;
+    const speed = (0.8 + 0.2 * Math.random()) * Math.sqrt(aRadial * r);
+    obj.velocity.set(-nz * speed, 0, nx * speed);
+}
+
 function randomPosition() {
     const angle = Math.random() * Math.PI * 2;
     const r = CONFIG.randomRadiusMin + Math.random() * (CONFIG.randomRadiusMax - CONFIG.randomRadiusMin);
@@ -745,12 +758,11 @@ function spawnPreset(n) {
         const slot = state.masses.length;   // 이번에 놓일 질량의 슬롯 번호
         const pos = state.randomPlacement ? randomPosition() : presetSlotPosition(slot);
         const mass = CONFIG.presetMass;
-        // 무작위 모드에서는 속도·이심률도 넘기지 않아 일반 스폰과 같은 산포를 갖는다.
-        // 무작위 모드에서는 이심률·속도를 넘기지 않아 일반 스폰과 같은 산포를 갖는다.
+        // 무작위 모드에서는 이심률을 고정하지 않고 속도도 드래그 스폰과 같은 launchOrbit을 쓴다.
         // 고정 모드에서는 마지막 질량의 settling이 풀린 뒤에 한 번만 원궤도를 맞춘다 —
         // 위성이 서로도 당기므로 구성이 다 갖춰져야 속도가 정해지고, settling 중에는
         // 어차피 속도가 매 프레임 0으로 되돌려진다.
-        const opts = state.randomPlacement ? {} : {
+        const opts = state.randomPlacement ? { onSettled: launchOrbit } : {
             lScale: CONFIG.presetLScale,
             onSettled: () => { if(!state.masses.some(m => m.settling)) circularizePreset(); }
         };
@@ -878,7 +890,7 @@ window.addEventListener("pointerup", (e) => {
         const finalMass = THREE.MathUtils.clamp(
             scaleToMass(spawnGhost.scale.x), CONFIG.minMassValue, CONFIG.maxMassValue);
         const position = spawnGhost.position.clone();
-        createMass(position, massToScale(finalMass), finalMass);
+        createMass(position, massToScale(finalMass), finalMass, { onSettled: launchOrbit });
     }
     // charging 여부와 무관하게 항상 스폰 모드 종료 → '버튼 먹통' 고착 방지
     endSpawnMode();
@@ -926,7 +938,7 @@ if(new URLSearchParams(location.search).has('debug')) {
     // updateMassPhysics·initGeodesic까지 연 이유: §4.5(두 모드 궤적 대조)가 rAF에 의존하지 않고
     // 앱의 실제 스텝 함수를 고정 간격으로 동기 구동해야 재현이 된다. 측정이 물리를 다시 구현하면
     // 통제가 성립하지 않는다 — 이 훅은 ?debug일 때만 열린다.
-    window.__warped = { state, CONFIG, computeAcceleration, geodesicRadialAccel, advanceGeodesic, createMass, massToScale, scaleToMass, camera, scene, shaderMat, updateMassPhysics, initGeodesic };
+    window.__warped = { state, CONFIG, computeAcceleration, geodesicRadialAccel, advanceGeodesic, createMass, massToScale, scaleToMass, camera, scene, shaderMat, updateMassPhysics, initGeodesic, launchOrbit };
 }
 window.addEventListener("resize", () => {
     renderer.setSize(window.innerWidth, window.innerHeight); 
